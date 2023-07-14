@@ -1,0 +1,88 @@
+# 镜像设置
+image:
+  repository: nginx
+  pullPolicy: Always
+  tag: 1.24.0
+  pullSecrets: []
+
+# 资源限制
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+
+# 自动横向拓展
+autoscaling:
+  # 是否启用横向拓展。如果不启用，则默认启动 minReplicas 个副本
+  enabled: true
+  # 最小副本数量
+  minReplicas: 2
+  # 最大副本数量
+  maxReplicas: 5
+  # CPU 超过 resource.limits.cpu 里面限制的 60% 就触发横向拓展
+  targetCPUPercentage: 60
+
+# 节点选择器
+nodeSelector:
+  # 只调度到流量出口节点
+  cluster.k8s/egress: enabled
+
+# 污点容忍度
+tolerations: []
+
+# 节点亲和性
+# 如果为空，默认的亲和性规则是尽量将 Pod 分布到不同的节点上
+# 如果不为空，则以用户定义的亲和性为准
+affinity: {}
+
+# 代理路由
+routers:
+  - name: dashboard               # 服务名
+    scheme: https                 # 以指定协议访问服务
+    host: dashboard.cluster.k8s   # 以指定的 Host 名访问服务
+    targets:                      # 服务地址列表
+      - 10.10.20.21:443
+      - 10.10.20.21:443
+    options:                      # 代理选项
+      connectTimeout: 60          # 连接超时时间，默认 10s
+      sendTimeout: 60             # 发送数据超时时间，默认 10s
+      readTimeout: 60             # 读取数据超时时间，默认 10s
+      clientMaxBodySize: 1024m    # 最大请求体大小，默认 16m
+  - name: nexus
+    scheme: http
+    host: mirror.cluster.k8s
+    targets:
+      - 10.10.20.0
+
+# nginx 其它配置
+config:
+  nginx.conf: |
+    user  nginx;
+    worker_processes  auto;
+    
+    error_log  /var/log/nginx/error.log notice;
+    pid        /var/run/nginx.pid;
+    
+    events {
+        worker_connections  1024;
+    }
+    
+    http {
+        log_format            main  '[$time_local] $remote_addr -> $http_host "$request $status" '
+                                    'Body-Length=[$body_bytes_sent] Referer=[$http_referer] '
+                                    'User-Agent=[$http_user_agent] X-Forwarded-For=[$http_x_forwarded_for]';
+    
+        access_log            /var/log/nginx/access.log  main;
+    
+        sendfile              on;
+        tcp_nopush            on;
+        tcp_nodelay           on;
+        keepalive_timeout     65;
+        types_hash_max_size   4096;
+    
+        include               /etc/nginx/mime.types;
+        default_type          application/octet-stream;
+        server_tokens         off;
+    
+        include               /etc/nginx/conf.d/*.conf;
+    }

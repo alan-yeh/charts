@@ -1,0 +1,42 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: "{{ .Release.Name }}-config"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "egress.labels" . | nindent 4 }}
+data:
+  {{- with .Values.config }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  default.conf: |
+    {{- range $index, $val := .Values.routers }}
+    ## start proxy {{ $val.name }}
+    upstream lb-{{ $val.name }} {
+        {{- range $val.targets }}
+        server {{ . }};
+        {{- end }}
+    }
+
+    server {
+        listen       {{ add 8080 $index }};
+        access_log   /var/log/nginx/access_{{ $val.name }}.log   main;
+
+        location / {
+            proxy_pass              {{ $val.scheme }}://lb-{{ $val.name }};
+            proxy_redirect          default;
+            client_max_body_size    {{ dig "options" "clientMaxBodySize" "16m" $val }};
+            {{ if $val.host }}
+            proxy_set_header        Host         {{ $val.host }};
+            {{ end }}
+            proxy_connect_timeout   {{ dig "options" "connectTimeout" "10" $val }}s;
+            proxy_read_timeout      {{ dig "options" "readTimeout" "10" $val }}s;
+            proxy_send_timeout      {{ dig "options" "sendTimeout" "10" $val }}s;
+
+            proxy_http_version      1.1;
+            proxy_set_header        Upgrade      $http_upgrade;
+            proxy_set_header        Connection   'upgrade';
+        }
+    }
+    ## end proxy {{ $val.name }}
+    {{- end }}
