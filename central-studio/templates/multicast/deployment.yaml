@@ -1,0 +1,85 @@
+{{- $conf := mustMergeOverwrite (dict) (deepCopy .Values.global) (deepCopy .Values.multicast) -}}
+{{- if $conf.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $conf.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "multicast.labels" . | nindent 4 }}
+spec:
+  {{- if not $conf.autoscaling.enabled }}
+  replicas: {{ $conf.autoscaling.minReplicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "multicast.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "multicast.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ $conf.name }}
+          image: "{{ $conf.image.registry }}/{{ $conf.image.repository }}:{{ $conf.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ $conf.image.pullPolicy }}
+          env:
+            - name: JVM_MAX_HEAP
+              value: {{ $conf.jvm.xmx }}
+            - name: JVM_MIN_HEAP
+              value: {{ $conf.jvm.xms }}
+          ports:
+            - name: http
+              containerPort: 3600
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /multicast/__health/live
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /multicast/__health/ready
+          resources:
+          {{- toYaml $conf.resources | nindent 12 }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /workspace/config
+            - name: log-volume
+              mountPath: /workspace/logs
+      {{- with $conf.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $conf.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if $conf.affinity }}
+      {{- with $conf.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      affinity:
+        # 让副本分布到不同的节点上，避免单点故障
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: "kubernetes.io/hostname"
+                labelSelector:
+                  matchExpressions:
+                    - key: "app.kubernetes.io/name"
+                      operator: In
+                      values: [{{ $conf.name | quote }}]
+                    - key: "app.kubernetes.io/instance"
+                      operator: In
+                      values: [{{ .Release.Name | quote }}]
+      {{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Chart.Name }}
+        - name: log-volume
+          emptyDir: {}
+{{- end }}

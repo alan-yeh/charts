@@ -1,0 +1,122 @@
+##################################################################
+# 全局配置
+##################################################################
+global:
+  enabled: true
+  image:
+    # 镜像仓库地址
+    registry: docker.io/centralx
+    # 镜像拉取策略
+    # Always: 无论本地是否存在指定 tag 的镜像，都从镜像仓库中拉取
+    # IfNotPresent: 如果本地存在指定 tag 的镜像，则直接使用本地镜歇
+    # Never: 不拉取镜像。如果本地没有镜像，则直接启动失败
+    pullPolicy: Always
+  # 资源限制
+  resources:
+    # 镜像资源限制
+    limits:
+      # 1 个 CPU 核心等于 1000m
+      # 查看官网了解更多说明 https://kubernetes.io/zh-cn/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu
+      cpu: 500m
+      # 内存资源代码有 Ki、Mi、Gi、Ti、Pi、Ei，一般以 Mi 为主
+      # 注意，内存不要设置过高，达到可用级别就好
+      # 单个副本扩大内存的收益不如多个副本高
+      memory: 512Mi
+  # Jvm 资源限制
+  jvm:
+    xms: 256m
+    xmx: 256m
+  # 自动横向拓展
+  autoscaling:
+    # 是否启用自动横向拓展。如果不启用，则默认启动 minReplicas 个副本
+    enabled: false
+    # 最小副本数量
+    minReplicas: 1
+    # 最大副本数量
+    maxReplicas: 2
+    # CPU 超过 resource.limits.cpu 里面限制的 60% 就触发横向拓展
+    targetCPUPercentage: 60
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性，如果为空时，默认的亲和性尽量将同一应用的 Pod 分布到不同的节点上
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+  # 通用配置文件，里面的内容会挂载到 /application/config 目录下
+  # 不要将不通用的配置写到这里
+  config:
+    application.yaml: |
+      logging:
+        config: classpath:logback-http.xml
+  # 存储配置
+  pvc:
+    storageClassName: permanent
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+
+##################################################################
+# 应用流量入口配置
+##################################################################
+ingress:
+  enabled: true
+  className: nginx
+  # 完成部署后，如果未指定 host，则 Central Studio 默认监听 ${namespace}.cluster.k8s
+  #host: ingress.central.k8s
+  annotations: {}
+
+##################################################################
+# 应用配置
+##################################################################
+
+# 网关
+gateway:
+  enabled: true
+  name: central-gateway
+  image:
+    repository: central-gateway
+
+# 认证中心
+security:
+  enabled: true
+  name: central-security
+  image:
+    repository: central-security
+
+# 仪表中心
+dashboard:
+  enabled: true
+  name: central-dashboard
+  image:
+    repository: central-dashboard
+
+# 数据服务中心
+provider:
+  enabled: true
+  name: central-provider
+  image:
+    repository: central-provider
+
+# 日志中心
+logging:
+  enabled: true
+  name: central-logging
+  image:
+    repository: central-logging
+
+# 存储中心
+storage:
+  enabled: true
+  name: central-storage
+  image:
+    repository: central-storage
+
+# 广播中心
+multicast:
+  enabled: true
+  name: central-multicast
+  image:
+    repository: central-multicast

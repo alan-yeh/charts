@@ -1,0 +1,19 @@
+{{- $conf := mustMergeOverwrite (dict) (deepCopy .Values.global) (deepCopy .Values.dashboard) -}}
+{{- if $conf.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $conf.name }}
+  labels:
+    {{- include "dashboard.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "dashboard.selectorLabels" . | nindent 4 }}
+{{- end }}
