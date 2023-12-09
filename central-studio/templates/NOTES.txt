@@ -7,9 +7,9 @@ Central Studio is starting...  #
         ++++     ++++  ###
           ++++        ###
            ++++     #####
-            +++++     ####
-            +++        ####
-           +++  ####     ####          Version: {{ .Chart.AppVersion }}
+            +++++     ####             Central Studio
+            +++        ####            Version: {{ .Chart.AppVersion }}
+           +++  ####     ####
           ++   ######     ####         {{ if .Values.ingress.enabled }}Ingress 访问地址: http://{{ .Values.ingress.host | default (print .Release.Namespace ".cluster.k8s") }}/dashboard {{ end }}
          ++   ##   ####     ####
         ++  #       #############      Central Studio 后台管理界面（Dashboard）是内部管理系统，请勿暴露到互联网！

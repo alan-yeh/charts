@@ -23,11 +23,9 @@ spec:
         - name: {{ $conf.name }}
           image: "{{ $conf.image.registry }}/{{ $conf.image.repository }}:{{ $conf.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ $conf.image.pullPolicy }}
-          env:
-            - name: JVM_MAX_HEAP
-              value: {{ $conf.jvm.xmx }}
-            - name: JVM_MIN_HEAP
-              value: {{ $conf.jvm.xms }}
+          args:
+            - "-Xms{{$conf.jvm.xms}}"
+            - "-Xmx{{$conf.jvm.xmx}}"
           ports:
             - name: http
               containerPort: 3600
