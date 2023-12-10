@@ -1,0 +1,68 @@
+# 是否部署
+# 如果为 False，会删除 Deployment，但是不会删除 PVC
+enabled: true
+
+# 仓库配置
+image:
+  repository: mysql
+  pullPolicy: Always
+
+# 应用资源限制
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+# MySql 配置
+config:
+  # root 用户的密码
+  password: root
+
+# MySql 配置文件
+# 以下配置文件会被挂载到 /etc/mysql/conf.d 目录
+cnf:
+  docker.cnf: |
+    [mysqld]
+    skip-host-cache
+    skip-name-resolve
+    lower_case_table_names=1
+  mysql.cnf: |
+    [mysql]
+  mysqldump.cnf: |
+    [mysqldump]
+    quick
+    quote-names
+    max_allowed_packet = 16M
+
+# MySql 存储配置
+pvc:
+  storageClassName: permanent
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+# Web 管理界面
+cloudbeaver:
+  enabled: true
+  image:
+    repository: dbeaver/cloudbeaver
+    tag: 23.2.0
+    pullPolicy: Always
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性，如果为空时，默认的亲和性尽量将同一应用的 Pod 分布到不同的节点上
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+  ingress:
+    className: "nginx"
+    # 部署后，如果未指定 host，则 MySQL 默认监听 <release-name>.<namespace>.cluster.k8s
+    host: mysql.cluster.k8s

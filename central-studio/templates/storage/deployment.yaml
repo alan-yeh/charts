@@ -83,7 +83,7 @@ spec:
             name: {{ .Chart.Name }}
         - name: data-volume
           persistentVolumeClaim:
-            claimName: {{ .Chart.Name }}-pvc
+            claimName: {{ .Release.Name }}-pvc
         - name: log-volume
           emptyDir: {}
 {{- end }}

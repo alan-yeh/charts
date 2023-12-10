@@ -1,0 +1,50 @@
+{{- if and .Values.cloudbeaver.enabled .Values.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mysql.fullname" . }}-cloudbeaver
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudbeaver.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "cloudbeaver.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cloudbeaver.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: cloudbeaver
+          image: "{{ .Values.cloudbeaver.image.repository }}:{{ .Values.cloudbeaver.image.tag }}"
+          imagePullPolicy: {{ .Values.cloudbeaver.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8978
+              protocol: TCP
+          volumeMounts:
+            - name: data-volume
+              mountPath: /opt/cloudbeaver/workspace
+              subPath: cloudbeaver
+          resources:
+            {{- toYaml .Values.cloudbeaver.resources | nindent 12 }}
+      {{- with .Values.cloudbeaver.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cloudbeaver.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cloudbeaver.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: {{ include "mysql.fullname" . }}-pvc
+
+{{- end }}

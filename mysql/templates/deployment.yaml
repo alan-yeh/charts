@@ -1,0 +1,55 @@
+{{- if .Values.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mysql.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mysql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mysql.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: mysql
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3306
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: cnf-volume
+              mountPath: /etc/mysql/conf.d
+            - name: data-volume
+              mountPath: /var/lib/mysql
+              subPath: mysql
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: MYSQL_ROOT_PASSWORD
+              value: {{ .Values.config.password | quote }}
+      volumes:
+        - name: cnf-volume
+          configMap:
+            name: {{ .Chart.Name }}
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: {{ include "mysql.fullname" . }}-pvc
+  {{- end }}

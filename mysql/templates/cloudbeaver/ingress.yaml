@@ -1,0 +1,26 @@
+{{- if and .Values.cloudbeaver.enabled .Values.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "mysql.fullname" . }}-cloudbeaver
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudbeaver.labels" . | nindent 4 }}
+  {{- with .Values.cloudbeaver.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.cloudbeaver.ingress.className }}
+  rules:
+    - host: {{ .Values.cloudbeaver.ingress.host | default (print "mysql." .Release.Namespace ".cluster.k8s") }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "mysql.fullname" . }}-cloudbeaver
+                port:
+                  name: http
+{{- end }}
