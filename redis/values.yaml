@@ -1,0 +1,53 @@
+replicaCount: 1
+
+image:
+  repository: redis
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 5Gi
+
+# 修改 redis.conf
+# https://raw.githubusercontent.com/redis/redis/7.0/redis.conf
+conf:
+  redis.conf: |
+    maxmemory 4096mb
+    maxmemory-policy allkeys-lru
+    requirepass central@2023
+
+# Redis Insight可视化界面
+insight:
+  # 是否部署 Redis Insight
+  enabled: true
+  image:
+    repository: redislabs/redisinsight
+    tag: 1.14.0
+    pullPolicy: Always
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  # 自动横向拓展
+  autoscaling:
+    # 是否启用横向拓展，如果不启用，则默认启动 minReplicas 个副本
+    enabled: false
+    # 最小副本数量
+    minReplicas: 1
+    # 最大副本数量
+    maxReplicas: 5
+    # CPU 超过 resource.limit 里面限制的 60% 就触发横向拓展
+    targetCPUPercentage: 60
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性，如果为空时，默认的亲和性尽量将同一应用的 Pod 分布到不同的节点上
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+  ingress:
+    className: "nginx"
+    # 部署后，如果未指定 host，则 Redis 默认监听 redis.${namespace}.cluster.k8s
+    #host: redis.cluster.k8s
