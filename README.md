@@ -9,6 +9,7 @@
 - MySql: 测试环境下部署 MySql 用于测试
 - SpeedTest: 用于做网络速度测试
 - Redis: 缓存数据库
+- Nexus3: 包托管中心
 
 ## License
 [MIT License](./LICENSE)
