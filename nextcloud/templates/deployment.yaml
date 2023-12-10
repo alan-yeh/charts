@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nextcloud.fullname" . }}
+  labels:
+    {{- include "nextcloud.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "nextcloud.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nextcloud.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: nextcloud
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            # MySQL
+            {{- if .Values.config.mysql }}
+            - name: MYSQL_HOST
+              value: {{ .Values.config.mysql.host | quote }}
+            - name: MYSQL_USER
+              value: {{ .Values.config.mysql.username | quote }}
+            - name: MYSQL_PASSWORD
+              value: {{ .Values.config.mysql.password | quote }}
+            - name: MYSQL_DATABASE
+              value: {{ .Values.config.mysql.database | quote }}
+            {{- end }}
+            # Redis
+            {{- if .Values.config.redis }}
+            - name: REDIS_HOST
+              value: {{ .Values.config.redis.host | quote }}
+            - name: REDIS_HOST_PORT
+              value: {{ .Values.config.redis.port | quote }}
+            - name: REDIS_HOST_PASSWORD
+              value: {{ .Values.config.redis.password | quote }}
+            {{- end }}
+            # SMTP
+            {{- if .Values.config.smtp }}
+            - name: SMTP_HOST
+              value: {{ .Values.config.smtp.host | quote }}
+            - name: SMTP_PORT
+              value: {{ .Values.config.smtp.port | quote }}
+            - name: SMTP_SECURE
+              value: {{ .Values.config.smtp.secure | quote }}
+            - name: SMTP_NAME
+              value: {{ .Values.config.smtp.name | quote }}
+            - name: SMTP_PASSWORD
+              value: {{ .Values.config.smtp.password | quote }}
+            - name: SMTP_FROM_ADDRESS
+              value: {{ .Values.config.smtp.fromAddress | quote }}
+            - name: SMTP_DOMAIN
+              value: {{ .Values.config.smtp.domain | quote }}
+            {{- end }}
+            # Proxy Settings
+            {{- if .Values.config.proxy.trustedDomains }}
+            - name: NEXTCLOUD_TRUSTED_DOMAINS
+              value: {{ join " " .Values.config.proxy.trustedDomains | quote}}
+            {{- end }}
+            {{- if .Values.config.proxy.trustedProxies }}
+            - name: TRUSTED_PROXIES
+              value: {{ join " " .Values.config.proxy.trustedProxies | quote }}
+            {{- end }}
+            {{- if .Values.config.proxy.overwrite.host }}
+            - name: OVERWRITEHOST
+              value: {{ .Values.config.proxy.overwrite.host | quote }}
+            {{- end }}
+            {{- if .Values.config.proxy.overwrite.protocol }}
+            - name: OVERWRITEPROTOCOL
+              value: {{ .Values.config.proxy.overwrite.protocol | quote }}
+            {{- end }}
+            # PHP Settings
+            {{- if .Values.config.php }}
+            - name: PHP_MEMORY_LIMIT
+              value: {{ .Values.config.php.memoryLimit | quote}}
+            - name: PHP_UPLOAD_LIMIT
+              value: {{ .Values.config.php.uploadLimit | quote}}
+            {{- end }}
+            
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data-volume
+              mountPath: /var/www/html
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: {{ include "nextcloud.fullname" . }}-pvc
