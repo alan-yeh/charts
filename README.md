@@ -7,6 +7,7 @@
 - Central Studio[[链接](https://central-x.com/studio/)]: Central Studio 的部署包
 - Egress: Kubernetes 容器流量出口代理
 - MySql: 测试环境下部署 MySql 用于测试
+- SpeedTest: 用于做网络速度测试
 
 ## License
 [MIT License](./LICENSE)

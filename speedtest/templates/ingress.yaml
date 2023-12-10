@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "speedtest.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "speedtest.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host | default (print "speedtest." .Release.Namespace ".cluster.k8s") }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "speedtest.fullname" . }}
+                port:
+                  name: http
