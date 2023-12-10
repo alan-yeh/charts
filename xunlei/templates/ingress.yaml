@@ -1,0 +1,27 @@
+{{- if .Values.ingress.enabled }}
+# 迅雷可视化界面访问入口
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "xunlei.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "xunlei.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host | default (print "xunlei." .Release.Namespace ".cluster.k8s") }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "xunlei.fullname" . }}
+                port:
+                  name: http
+{{- end }}

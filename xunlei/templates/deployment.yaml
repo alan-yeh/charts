@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "xunlei.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "xunlei.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "xunlei.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "xunlei.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: xunlei
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 2345
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data-volume
+              mountPath: /xunlei/data
+              subPath: data
+            - name: data-volume
+              mountPath: /xunlei/downloads
+              subPath: downloads
+          securityContext:
+            privileged: true
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: {{ include "xunlei.fullname" . }}-pvc
