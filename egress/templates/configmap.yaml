@@ -1,10 +1,10 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: "{{ .Release.Name }}-config"
+  name: {{ include "global.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "egress.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 data:
   {{- with .Values.config }}
   {{- toYaml . | nindent 2 }}
@@ -19,8 +19,9 @@ data:
     }
 
     server {
-        listen       {{ add 8080 $index }};
-        access_log   /var/log/nginx/access_{{ $val.name }}.log   main;
+        listen                      {{ add 8080 $index }};
+        server_name                 {{ $val.name }}
+        access_log                  /var/log/nginx/access_{{ $val.name }}.log   main;
 
         location / {
             proxy_pass              {{ $val.scheme }}://lb-{{ $val.name }};

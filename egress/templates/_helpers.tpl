@@ -1,29 +1,35 @@
-
-{{- define "egress.name" -}}
-{{- .Chart.Name }}
+{{/*
+    当前实例的唯一标识
+*/}}
+{{- define "global.identity" -}}
+{{- printf "%s" .Release.Name | sha1sum | trunc 5 }}
 {{- end }}
 
-{{- define "egress.fullname" -}}
-{{- printf "%s-egress" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{/*
+    当前实例的名字
+*/}}
+{{- define "global.name" -}}
+{{- printf "%s-%s" .Chart.Name (include "global.identity" .) }}
 {{- end }}
 
-
-{{- define "egress.chart" -}}
+{{/*
+   当前包的名字和版本号
+*/}}
+{{- define "global.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-
-{{- define "egress.labels" -}}
-helm.sh/chart: {{ include "egress.chart" . }}
-{{ include "egress.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
+{{/*
+    当前实例的通用标签
+*/}}
+{{- define "global.labels" -}}
+helm.sh/chart: {{ include "global.chart" . }}
+{{ include "global.selectorLabels" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 
-{{- define "egress.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "egress.name" . }}
+{{- define "global.selectorLabels" -}}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}

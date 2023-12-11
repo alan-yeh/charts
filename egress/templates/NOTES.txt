@@ -8,5 +8,5 @@ Egress is starting...
 
 已生成以服务代理：
 {{- range $index, $val := .Values.routers }}
-{{ printf "%2d" (add $index 1) }}. {{ $val.name }}: {{ range $index, $target := $val.targets }}{{ if ne $index 0 }}, {{ end }}{{ $val.scheme }}://{{ $target }}{{ end }}
+{{ printf "%2d" (add $index 1) }}. http://{{ $val.name }} -> [{{ range $index, $target := $val.targets }}{{ if ne $index 0 }}, {{ end }}{{ $val.scheme }}://{{ $target }}{{ end }}]
 {{- end }}

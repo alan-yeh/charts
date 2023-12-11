@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "egress.fullname" . }}
+  name: {{ include "global.name" . }}
   labels:
-    {{- include "egress.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   ports:
@@ -15,7 +15,7 @@ spec:
       protocol: TCP
     {{- end }}
   selector:
-    {{- include "egress.selectorLabels" . | nindent 4 }}
+    {{- include "global.selectorLabels" . | nindent 4 }}
 {{- range .Values.routers }}
 ---
 apiVersion: v1
@@ -23,7 +23,7 @@ kind: Service
 metadata:
   name: {{ .name | quote }}
   labels:
-    {{- include "egress.labels" $dot | nindent 4 }}
+    {{- include "global.labels" $dot | nindent 4 }}
   namespace: {{ $.Release.Namespace }}
 spec:
   type: ClusterIP
@@ -33,5 +33,5 @@ spec:
       targetPort: {{ .name }}-port
       protocol: TCP
   selector:
-    {{- include "egress.selectorLabels" $dot | nindent 4 }}
+    {{- include "global.selectorLabels" $dot | nindent 4 }}
 {{- end }}
