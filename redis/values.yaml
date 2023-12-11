@@ -1,3 +1,4 @@
+# 目前只支持单实例，不要修改 replicasCount 参数
 replicaCount: 1
 
 image:
@@ -15,7 +16,7 @@ conf:
   redis.conf: |
     maxmemory 4096mb
     maxmemory-policy allkeys-lru
-    requirepass central@2023
+    requirepass <redis-password>
 
 # Redis Insight可视化界面
 insight:
@@ -49,5 +50,5 @@ insight:
   affinity: {}
   ingress:
     className: "nginx"
-    # 部署后，如果未指定 host，则 Redis 默认监听 redis.${namespace}.cluster.k8s
+    # 部署后，如果未指定 host，则 Redis 默认监听 redis.<namespace>.cluster.k8s
     #host: redis.cluster.k8s

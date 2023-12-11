@@ -49,7 +49,15 @@ global:
     application.yaml: |
       logging:
         config: classpath:logback-http.xml
+      spring:
+        datasource:
+          name: master
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://mysql:3306/centralx?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+          username: root
+          password: <password>
   # 存储配置
+  # 系统将会把数据存放到这个存储卷下
   pvc:
     storageClassName: permanent
     accessModes:
@@ -64,7 +72,7 @@ global:
 ingress:
   enabled: true
   className: nginx
-  # 完成部署后，如果未指定 host，则 Central Studio 默认监听 ${namespace}.cluster.k8s
+  # 完成部署后，如果未指定 host，则 Central Studio 默认监听 <namespace>.cluster.k8s
   #host: ingress.central.k8s
   annotations: {}
 

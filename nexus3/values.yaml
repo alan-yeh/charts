@@ -34,7 +34,7 @@ affinity: {}
 ingress:
   enabled: true
   className: "nginx"
-  # 部署后，如果未指定 host，则默认监听 nexus3.${namespace}.cluster.k8s
-  # docker 发布地址默认监听 deploy.nexus3.${namespace}.cluster.k8s
+  # 部署后，如果未指定 host，则默认监听 nexus3.<namespace>.cluster.k8s
+  # docker 发布地址默认监听 deploy.nexus3.<namespace>.cluster.k8s
   #host: nexus3.cluster.k8
   #deployHost: deploy.nexus3.cluster.k8s

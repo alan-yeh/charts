@@ -19,20 +19,20 @@ config:
   mysql:
     host: mysql
     username: root
-    password: root
+    password: <mysql-password>
     database: nextcloud
   # Redis 配置
   redis:
     host: redis
     port: 6379
-    password: redis
+    password: <redis-password>
   # 邮箱配置
   smtp:
     host: smtp.exmail.qq.com
     port: 465
     secure: ssl
     name: notice@central-x.com
-    password: <password>
+    password: <smtp-password>
     fromAddress: NextCloud
     domain: central-x.com
   # 内存配置
@@ -71,5 +71,5 @@ affinity: {}
 ingress:
   enabled: true
   className: "nginx"
-  # 部署后，如果未指定 host，则默认监听 nextcloud.${namespace}.cluster.k8s
+  # 部署后，如果未指定 host，则默认监听 nextcloud.<namespace>.cluster.k8s
 #  host: cloud.cluster.k8s

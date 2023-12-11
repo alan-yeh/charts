@@ -30,6 +30,6 @@ affinity: {}
 ingress:
   enabled: true
   className: "nginx"
-  # 部署后，如果未指定 host，则默认监听 xunlei.${namespace}.cluster.k8s
+  # 部署后，如果未指定 host，则默认监听 xunlei.<namespace>.cluster.k8s
   # host: xunlei.cluster.k8s
   #deployHost: deploy.xunlei.cluster.k8s

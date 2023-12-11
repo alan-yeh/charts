@@ -7,10 +7,11 @@
 - Central Studio[[链接](https://central-x.com/studio/)]: Central Studio 的部署包
 - Egress: Kubernetes 容器流量出口代理
 - MySql: 测试环境下部署 MySql 用于测试
-- SpeedTest: 用于做网络速度测试
-- Redis: 缓存数据库
-- Nexus3: 包托管中心
 - NextCloud: 文件托管中心
+- Nexus3: 包托管中心
+- Redis: 缓存数据库
+- SpeedTest: 用于做网络速度测试
+- Xunlei: 迅雷下载
 
 ## License
 [MIT License](./LICENSE)
