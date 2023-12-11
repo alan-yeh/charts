@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "mysql.fullname" . }}-cloudbeaver
+  name: {{ include "cloudbeaver.name" . }}
   labels:
     {{- include "cloudbeaver.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}

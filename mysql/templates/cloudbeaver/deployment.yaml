@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "mysql.fullname" . }}-cloudbeaver
+  name: {{ include "cloudbeaver.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cloudbeaver.labels" . | nindent 4 }}
@@ -45,6 +45,6 @@ spec:
       volumes:
         - name: data-volume
           persistentVolumeClaim:
-            claimName: {{ include "mysql.fullname" . }}-pvc
+            claimName: {{ include "global.name" . }}
 
 {{- end }}

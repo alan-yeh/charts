@@ -1,28 +1,37 @@
-{{- define "mysql.fullname" -}}
-{{- printf .Release.Name | trunc 63 | trimSuffix "-" }}
+{{/*
+    当前实例的唯一标识
+*/}}
+{{- define "global.identity" -}}
+{{- printf "%s" .Release.Name | sha1sum | trunc 5 }}
 {{- end }}
 
 {{/*
-Create chart name and version as used by the chart label.
+    当前实例的名字
 */}}
-{{- define "mysql.chart" -}}
+{{- define "global.name" -}}
+{{- printf "%s-%s" .Chart.Name (include "global.identity" .) }}
+{{- end }}
+
+{{/*
+   当前包的名字和版本号
+*/}}
+{{- define "global.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Common labels
+    当前实例的通用标签
 */}}
-{{- define "mysql.labels" -}}
-helm.sh/chart: {{ include "mysql.chart" . }}
-{{ include "mysql.selectorLabels" . }}
+{{- define "global.labels" -}}
+helm.sh/chart: {{ include "global.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/part-of: {{ .Chart.Name | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-Selector labels
+    当前实例的选择标签
 */}}
-{{- define "mysql.selectorLabels" -}}
-app.kubernetes.io/name: {{ .Chart.Name }}
+{{- define "global.selectorLabels" -}}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}

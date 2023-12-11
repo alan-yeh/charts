@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "mysql.fullname" . }}-cloudbeaver
+  name: {{ include "cloudbeaver.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cloudbeaver.labels" . | nindent 4 }}
@@ -13,14 +13,14 @@ metadata:
 spec:
   ingressClassName: {{ .Values.cloudbeaver.ingress.className }}
   rules:
-    - host: {{ .Values.cloudbeaver.ingress.host | default (print "mysql." .Release.Namespace ".cluster.k8s") }}
+    - host: {{ .Values.cloudbeaver.ingress.host | default (print .Release.Name ".mysql." .Release.Namespace ".cluster.k8s") }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ include "mysql.fullname" . }}-cloudbeaver
+                name: {{ include "cloudbeaver.name" . }}
                 port:
                   name: http
 {{- end }}
