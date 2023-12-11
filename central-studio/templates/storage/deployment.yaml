@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $conf.name }}
+  name: {{ include "storage.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "storage.labels" . | nindent 4 }}
@@ -80,10 +80,10 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Chart.Name }}
+            name: {{ include "global.name" . }}
         - name: data-volume
           persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-pvc
+            claimName: {{ include "global.name" . }}
         - name: log-volume
           emptyDir: {}
 {{- end }}

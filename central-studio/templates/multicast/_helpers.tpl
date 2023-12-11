@@ -1,14 +1,21 @@
 {{/*
-Common labels
+    当前组件实例的名字
 */}}
-{{- define "multicast.labels" -}}
-{{ include "studio.labels" . }}
+{{- define "multicast.name" -}}
+{{- printf "%s-%s" .Values.multicast.name (include "global.identity" .) }}
 {{- end }}
 
 {{/*
-Selector labels
+    通用应用标签
+*/}}
+{{- define "multicast.labels" -}}
+{{ include "global.labels" . }}
+{{- end }}
+
+{{/*
+    应用选择标签
 */}}
 {{- define "multicast.selectorLabels" -}}
-app.kubernetes.io/name: {{ .Values.multicast.name }}
-{{ include "studio.selectorLabels" . }}
+app.kubernetes.io/name: {{ include "multicast.name" . }}
+{{ include "global.selectorLabels" . }}
 {{- end }}

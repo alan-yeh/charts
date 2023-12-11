@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $conf.name }}
+  name: {{ include "security.name" . }}
   labels:
     {{- include "security.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}

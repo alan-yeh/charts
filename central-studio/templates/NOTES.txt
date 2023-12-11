@@ -10,7 +10,7 @@ Central Studio is starting...  #
             +++++     ####             Central Studio
             +++        ####            Version: {{ .Chart.AppVersion }}
            +++  ####     ####
-          ++   ######     ####         {{ if .Values.ingress.enabled }}Ingress 访问地址: http://{{ .Values.ingress.host | default (print .Release.Namespace ".cluster.k8s") }}/dashboard {{ end }}
+          ++   ######     ####         {{ if .Values.ingress.enabled }}Ingress 访问地址: http://{{ .Values.ingress.host | default (print .Release.Name "." .Release.Namespace ".cluster.k8s") }}/dashboard {{ end }}
          ++   ##   ####     ####
         ++  #       #############      Central Studio 后台管理界面（Dashboard）是内部管理系统，请勿暴露到互联网！
        +              ############
@@ -57,7 +57,7 @@ server {
         proxy_set_header   X-Forwarded-TenantPath   /$tenant;
 
         # 传递代理信息
-        proxy_set_header   Host                {{ .Values.ingress.host | default (print .Release.Namespace ".cluster.k8s") }};
+        proxy_set_header   Host                {{ .Values.ingress.host | default (print .Release.Name "." .Release.Namespace ".cluster.k8s") }};
         proxy_set_header   X-Real-IP           $remote_addr;                 # 用户真实 IP
         proxy_set_header   X-Forwarded-Host    $http_host;                   # 用户访问服务器的真实域名
         proxy_set_header   X-Forwarded-Port    $server_port;                 # 用户访问服务器的真实端口

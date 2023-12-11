@@ -1,14 +1,21 @@
 {{/*
-Common labels
+    当前组件实例的名字
 */}}
-{{- define "gateway.labels" -}}
-{{ include "studio.labels" . }}
+{{- define "gateway.name" -}}
+{{- printf "%s-%s" .Values.gateway.name (include "global.identity" .) }}
 {{- end }}
 
 {{/*
-Selector labels
+    通用应用标签
+*/}}
+{{- define "gateway.labels" -}}
+{{ include "global.labels" . }}
+{{- end }}
+
+{{/*
+    应用选择标签
 */}}
 {{- define "gateway.selectorLabels" -}}
-app.kubernetes.io/name: {{ .Values.gateway.name }}
-{{ include "studio.selectorLabels" . }}
+app.kubernetes.io/name: {{ include "gateway.name" . }}
+{{ include "global.selectorLabels" . }}
 {{- end }}

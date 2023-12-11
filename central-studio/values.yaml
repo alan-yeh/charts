@@ -72,7 +72,7 @@ global:
 ingress:
   enabled: true
   className: nginx
-  # 完成部署后，如果未指定 host，则 Central Studio 默认监听 <namespace>.cluster.k8s
+  # 完成部署后，如果未指定 host，则 Central Studio 默认监听 <release>.<namespace>.cluster.k8s
   #host: ingress.central.k8s
   annotations: {}
 

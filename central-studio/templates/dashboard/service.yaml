@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $conf.name }}
+  name: {{ include "dashboard.name" . }}
   labels:
     {{- include "dashboard.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}

@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $conf.name }}
+  name: {{ include "provider.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "provider.labels" . | nindent 4 }}
@@ -77,7 +77,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Chart.Name }}
+            name: {{ include "global.name" . }}
         - name: log-volume
           emptyDir: {}
 {{- end }}
