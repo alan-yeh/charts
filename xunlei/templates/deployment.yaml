@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "xunlei.fullname" . }}
+  name: {{ include "global.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "xunlei.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "xunlei.selectorLabels" . | nindent 6 }}
+      {{- include "global.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "xunlei.selectorLabels" . | nindent 8 }}
+        {{- include "global.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: xunlei
@@ -37,4 +37,4 @@ spec:
       volumes:
         - name: data-volume
           persistentVolumeClaim:
-            claimName: {{ include "xunlei.fullname" . }}-pvc
+            claimName: {{ include "global.name" . }}

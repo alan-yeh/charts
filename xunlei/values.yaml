@@ -1,6 +1,7 @@
 # 镜像
 image:
   repository: cnk3x/xunlei
+  tag:
   pullPolicy: Always
 
 # 应用资源限制

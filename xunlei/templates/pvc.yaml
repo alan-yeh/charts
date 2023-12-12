@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "xunlei.fullname" . }}-pvc
+  name: {{ include "global.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "xunlei.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 spec:
   {{- toYaml .Values.pvc | nindent 2 }}
