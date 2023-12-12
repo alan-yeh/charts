@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "speedtest.fullname" . }}
+  name: {{ include "global.name" . }}
   labels:
-    {{- include "speedtest.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "speedtest.selectorLabels" . | nindent 6 }}
+      {{- include "global.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "speedtest.selectorLabels" . | nindent 8 }}
+        {{- include "global.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}
+        - name: "speedtest"
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:

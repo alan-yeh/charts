@@ -1,10 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "speedtest.fullname" . }}
+  name: {{ include "global.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "speedtest.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -19,6 +19,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "speedtest.fullname" . }}
+                name: {{ include "global.name" . }}
                 port:
                   name: http

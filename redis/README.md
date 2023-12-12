@@ -17,3 +17,13 @@ $ helm install <release-name> .
 &emsp;&emsp;部署完毕后，内部的业务系统就可以通过 `<release-name>:6379` 连接到 MySql 实例了。
 
 &emsp;&emsp;同时，如果你还启用了 Insight 的话，那么还会创建一个监听域名 `<release-name>.<namespace>.cluster.k8s` 的 Ingress 资源。
+
+&emsp;&emsp;本 Chart 支持在同一命令空间下部署多个实例。
+
+```bash
+# 部署第一个 Redis 实例，内部服务可以通过 redis1:6379 访问这个实例
+$ helm install redis1 .
+
+# 部署第二个 Redis 实例，内部服务可以通过 redis2:6379 访问这个实例
+$ helm install redis2 .
+```
