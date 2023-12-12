@@ -3,8 +3,8 @@ Redis is starting...
            _.-``__ ''-._
       _.-``    `.  `_.  ''-._           Redis {{ .Chart.AppVersion }}
   .-`` .-```.  ```\\/    _.,_ ''-._ 
- (    '      ,       .-`  | `,    )     内部服务地址: {{ include "redis.fullname" . }}:6379
- |`-._`-...-` __...-.``-._|'` _.-'|     {{ if .Values.insight.enabled }}Ingress 访问地址: http://{{ .Values.insight.ingress.host | default (print "redis." .Release.Namespace ".cluster.k8s") }}{{ end }}
+ (    '      ,       .-`  | `,    )     内部服务地址: {{ include "redis.name" . }}:6379
+ |`-._`-...-` __...-.``-._|'` _.-'|     {{ if .Values.insight.enabled }}Ingress 访问地址: http://{{ .Values.insight.ingress.host | default (print .Release.Name "." .Release.Namespace ".cluster.k8s") }}{{ end }}
  |    `-._   `._    /     _.-'    |
   `-._    `-._  `-./  _.-'    _.-'      内部系统，请勿暴露到互联网！
  |`-._`-._    `-.__.-'    _.-'_.-'|
@@ -35,7 +35,7 @@ server {
         client_max_body_size   1000m;
 
         # 传递代理信息
-        proxy_set_header   Host                {{ .Values.insight.ingress.host | default (print "redis." .Release.Namespace ".cluster.k8s") }};
+        proxy_set_header   Host                {{ .Values.insight.ingress.host | default (print .Release.Name "." .Release.Namespace ".cluster.k8s") }};
         proxy_set_header   X-Real-IP           $remote_addr;                 # 用户真实 IP
         proxy_set_header   X-Forwarded-Host    $http_host;                   # 用户访问服务器的真实域名
         proxy_set_header   X-Forwarded-Port    $server_port;                 # 用户访问服务器的真实端口

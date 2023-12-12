@@ -2,7 +2,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "redis.fullname" . }}-insight
+  name: {{ include "insight.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "insight.labels" . | nindent 4 }}
@@ -10,7 +10,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "redis.fullname" . }}-insight
+    name: {{ include "insight.name" . }}
   minReplicas: {{ .Values.insight.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.insight.autoscaling.maxReplicas }}
   metrics:

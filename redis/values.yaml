@@ -1,22 +1,21 @@
-# 目前只支持单实例，不要修改 replicasCount 参数
-replicaCount: 1
-
-image:
-  repository: redis
-  pullPolicy: Always
-
-resources:
-  limits:
-    cpu: 2000m
-    memory: 5Gi
-
-# 修改 redis.conf
-# https://raw.githubusercontent.com/redis/redis/7.0/redis.conf
-conf:
-  redis.conf: |
-    maxmemory 4096mb
-    maxmemory-policy allkeys-lru
-    requirepass <redis-password>
+# 部署 Redis
+# 目前只支持单实例
+redis:
+  image:
+    repository: redis
+    tag:
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 5Gi
+  # 修改 redis.conf
+  # https://raw.githubusercontent.com/redis/redis/7.0/redis.conf
+  conf:
+    redis.conf: |
+      maxmemory 4096mb
+      maxmemory-policy allkeys-lru
+      requirepass <redis-password>
 
 # Redis Insight可视化界面
 insight:

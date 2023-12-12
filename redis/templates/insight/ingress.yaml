@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "redis.fullname" . }}-insight
+  name: {{ include "insight.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "insight.labels" . | nindent 4 }}
@@ -13,14 +13,14 @@ metadata:
 spec:
   ingressClassName: {{ .Values.insight.ingress.className }}
   rules:
-    - host: {{ .Values.insight.ingress.host | default (print "redis." .Release.Namespace ".cluster.k8s") }}
+    - host: {{ .Values.insight.ingress.host | default (print .Release.Name "." .Release.Namespace ".cluster.k8s") }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ include "redis.fullname" . }}-insight
+                name: {{ include "insight.name" . }}
                 port:
                   name: http
 {{- end }}

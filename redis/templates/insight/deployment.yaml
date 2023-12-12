@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "redis.fullname" . }}-insight
+  name: {{ include "insight.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "insight.labels" . | nindent 4 }}

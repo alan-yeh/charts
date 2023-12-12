@@ -1,11 +1,11 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ include "redis.fullname" . }}
+  name: {{ include "redis.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "redis.labels" . | nindent 4 }}
 data:
-  {{- with .Values.conf }}
+  {{- with .Values.redis.conf }}
   {{- toYaml . | nindent 2 }}
   {{- end }}

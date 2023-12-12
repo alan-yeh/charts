@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "redis.fullname" . }}
+  name: {{ include "redis.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "redis.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
       {{- include "redis.selectorLabels" . | nindent 6 }}
@@ -17,15 +17,15 @@ spec:
     spec:
       containers:
         - name: redis
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
           command: ["redis-server", "/etc/redis/redis.conf"]
           ports:
             - name: http
               containerPort: 6379
               protocol: TCP
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.redis.resources | nindent 12 }}
           volumeMounts:
             - name: conf
               mountPath: /etc/redis/redis.conf
@@ -41,4 +41,4 @@ spec:
       volumes:
         - name: conf
           configMap:
-            name: {{ include "redis.fullname" . }}
+            name: {{ include "redis.name" . }}

@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "redis.fullname" . }}-insight
+  name: {{ include "insight.name" . }}
   labels:
     {{- include "insight.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}

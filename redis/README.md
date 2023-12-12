@@ -13,3 +13,7 @@
 ```bash
 $ helm install <release-name> .
 ```
+
+&emsp;&emsp;部署完毕后，内部的业务系统就可以通过 `<release-name>:6379` 连接到 MySql 实例了。
+
+&emsp;&emsp;同时，如果你还启用了 Insight 的话，那么还会创建一个监听域名 `<release-name>.<namespace>.cluster.k8s` 的 Ingress 资源。
