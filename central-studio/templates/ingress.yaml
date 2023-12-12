@@ -20,7 +20,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "gateway.name" . }}
+                name: {{ $.Values.gateway.name }}
                 port:
                   name: http
 {{- end }}

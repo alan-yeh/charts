@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "storage.name" . }}
+  name: {{ $conf.name }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "storage.labels" . | nindent 4 }}

@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "logging.name" . }}
+  name: {{ $conf.name }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "logging.labels" . | nindent 4 }}

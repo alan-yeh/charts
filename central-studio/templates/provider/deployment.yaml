@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "provider.name" . }}
+  name: {{ $conf.name }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "provider.labels" . | nindent 4 }}
