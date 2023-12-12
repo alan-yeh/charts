@@ -13,7 +13,7 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
-    - host: {{ .Values.ingress.host | default (print .Release.Name "." .Release.Namespace ".cluster.k8s") }}
+    - host: {{ .Values.ingress.host | default (print "studio." .Release.Namespace ".cluster.k8s") }}
       http:
         paths:
           - path: /

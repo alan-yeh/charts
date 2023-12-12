@@ -11,3 +11,5 @@
 ```bash
 $ helm install <release-name> .
 ```
+
+&emsp;&emsp;部署后，Central Studio 会创建一个监听域名 `studio.<namespace>.cluster.k8s` 的 Ingress 资源，该 Ingress 会将所有请求转发到网关。

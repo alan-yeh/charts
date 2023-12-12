@@ -9,7 +9,7 @@
     当前实例的名字
 */}}
 {{- define "global.name" -}}
-{{- printf "%s-%s" .Chart.Name (include "global.identity" .) }}
+{{- printf "%s" .Chart.Name }}
 {{- end }}
 
 {{/*
