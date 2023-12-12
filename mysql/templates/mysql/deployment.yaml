@@ -48,7 +48,7 @@ spec:
       volumes:
         - name: cnf-volume
           configMap:
-            name: {{ .Chart.Name }}
+            name: {{ include "mysql.name" . }}
         - name: data-volume
           persistentVolumeClaim:
             claimName: {{ include "global.name" . }}
