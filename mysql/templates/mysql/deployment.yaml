@@ -18,14 +18,14 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
           ports:
             - name: http
               containerPort: 3306
               protocol: TCP
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.mysql.resources | nindent 12 }}
           volumeMounts:
             - name: cnf-volume
               mountPath: /etc/mysql/conf.d
@@ -44,7 +44,7 @@ spec:
             - name: TZ
               value: "Asia/Shanghai"
             - name: MYSQL_ROOT_PASSWORD
-              value: {{ .Values.config.password | quote }}
+              value: {{ .Values.mysql.config.password | quote }}
       volumes:
         - name: cnf-volume
           configMap:

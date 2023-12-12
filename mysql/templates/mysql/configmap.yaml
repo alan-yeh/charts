@@ -6,6 +6,6 @@ metadata:
   labels:
     {{- include "mysql.labels" . | nindent 4 }}
 data:
-  {{- with .Values.cnf }}
+  {{- with .Values.mysql.cnf }}
   {{- toYaml . | nindent 2 }}
   {{- end }}

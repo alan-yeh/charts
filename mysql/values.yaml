@@ -1,40 +1,7 @@
-# 是否部署
-# 如果为 False，会删除 Deployment，但是不会删除 PVC
-enabled: true
-
-# 仓库配置
-image:
-  repository: mysql
-  pullPolicy: Always
-
-# 应用资源限制
-resources:
-  limits:
-    cpu: 1000m
-    memory: 2Gi
-
-# MySql 配置
-config:
-  # root 用户的密码
-  password: <password>
-
-# MySql 配置文件
-# 以下配置文件会被挂载到 /etc/mysql/conf.d 目录
-cnf:
-  docker.cnf: |
-    [mysqld]
-    skip-host-cache
-    skip-name-resolve
-    lower_case_table_names=1
-  mysql.cnf: |
-    [mysql]
-  mysqldump.cnf: |
-    [mysqldump]
-    quick
-    quote-names
-    max_allowed_packet = 16M
-
-# MySql 存储配置
+####################################################################
+# 全局配置
+####################################################################
+# 存储配置
 pvc:
   storageClassName: permanent
   accessModes:
@@ -43,7 +10,47 @@ pvc:
     requests:
       storage: 100Gi
 
-# Web 管理界面
+####################################################################
+# MySql
+# 目前只支持单实例
+####################################################################
+mysql:
+  # 是否部署
+  # 如果为 False，会删除 Deployment，但是不会删除 PVC
+  enabled: true
+  # 仓库配置
+  image:
+    repository: mysql
+    tag:
+    pullPolicy: Always
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # MySql 配置
+  config:
+    # root 用户的密码
+    password: <password>
+  # MySql 配置文件
+  # 以下配置文件会被挂载到 /etc/mysql/conf.d 目录
+  cnf:
+    docker.cnf: |
+      [mysqld]
+      skip-host-cache
+      skip-name-resolve
+      lower_case_table_names=1
+    mysql.cnf: |
+      [mysql]
+    mysqldump.cnf: |
+      [mysqldump]
+      quick
+      quote-names
+      max_allowed_packet = 16M
+
+####################################################################
+# CloudBeaver
+####################################################################
 cloudbeaver:
   enabled: true
   image:
