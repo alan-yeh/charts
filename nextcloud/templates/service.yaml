@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "nextcloud.fullname" . }}
+  name: {{ include "global.name" . }}
   labels:
-    {{- include "nextcloud.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "nextcloud.selectorLabels" . | nindent 4 }}
+    {{- include "global.selectorLabels" . | nindent 4 }}

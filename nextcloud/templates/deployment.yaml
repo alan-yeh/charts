@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nextcloud.fullname" . }}
+  name: {{ include "global.name" . }}
   labels:
-    {{- include "nextcloud.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "nextcloud.selectorLabels" . | nindent 6 }}
+      {{- include "global.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "nextcloud.selectorLabels" . | nindent 8 }}
+        {{- include "global.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: nextcloud
@@ -94,7 +94,6 @@ spec:
             - name: PHP_UPLOAD_LIMIT
               value: {{ .Values.config.php.uploadLimit | quote}}
             {{- end }}
-            
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
@@ -115,4 +114,4 @@ spec:
       volumes:
         - name: data-volume
           persistentVolumeClaim:
-            claimName: {{ include "nextcloud.fullname" . }}-pvc
+            claimName: {{ include "global.name" . }}

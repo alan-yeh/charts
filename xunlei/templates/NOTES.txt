@@ -2,8 +2,8 @@ xunlei is starting...
 
 xunlei {{ .Chart.AppVersion }}
 {{ if .Values.ingress.enabled }}Ingress 访问地址: http://{{ .Values.ingress.host | default (print "xunlei." .Release.Namespace ".cluster.k8s") }}{{ end }}
-https://xunlei
 
+https://xunlei
 
 使用 Nginx 反向代理 xunlei 时，配置如下:
 
