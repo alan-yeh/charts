@@ -1,27 +1,21 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "nexus.fullname" . }}
+  name: {{ include "global.name" . }}
   labels:
-    {{- include "nexus.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   ports:
-    - port: 80
-      name: http
+    - name: http
+      port: 80
       targetPort: http
       protocol: TCP
-    - port: 5000
-      name: docker-port
-      targetPort: docker-port
+    {{- range $it := .Values.service.ports }}
+    - name: {{ $it.name }}
+      port: {{ $it.port }}
+      targetPort: {{ $it.name }}
       protocol: TCP
-    - port: 5003
-      name: deploy-port
-      targetPort: deploy-port
-      protocol: TCP
-    - port: 5004
-      name: appr-port
-      targetPort: appr-port
-      protocol: TCP
+    {{- end }}
   selector:
-    {{- include "nexus.selectorLabels" . | nindent 4 }}
+    {{- include "global.selectorLabels" . | nindent 4 }}

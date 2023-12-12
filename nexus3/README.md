@@ -11,3 +11,5 @@
 ```bash
 $ helm install <release-name> .
 ```
+
+&emsp;&emsp;注意，本 Chart 不支持在单个命名空间部署两个实例。

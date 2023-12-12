@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nexus.fullname" . }}
+  name: {{ include "global.name" . }}
   labels:
-    {{- include "nexus.labels" . | nindent 4 }}
+    {{- include "global.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "nexus.selectorLabels" . | nindent 6 }}
+      {{- include "global.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "nexus.selectorLabels" . | nindent 8 }}
+        {{- include "global.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: nexus3
@@ -22,6 +22,11 @@ spec:
             - name: http
               containerPort: 8081
               protocol: TCP
+            {{- range $it := .Values.service.ports }}
+            - name: {{ $it.name }}
+              containerPort: {{ $it.port }}
+              protocol: TCP
+            {{- end }}
           # livenessProbe:
           #   httpGet:
           #     path: /
@@ -54,4 +59,4 @@ spec:
       volumes:
         - name: data-volume
           persistentVolumeClaim:
-            claimName: {{ include "nexus.fullname" . }}-pvc
+            claimName: {{ include "global.name" . }}

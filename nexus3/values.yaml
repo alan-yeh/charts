@@ -13,6 +13,28 @@ resources:
   requests:
     cpu: 1000m
 
+# 网络配置
+service:
+  ports:
+    - name: docker-port
+      port: 5000
+
+# 流量入口
+ingress:
+  enabled: true
+  annotations: {}
+  className: "nginx"
+  # 部署后，如果未指定 host，则默认监听 nexus3.<namespace>.cluster.k8s
+  # docker 发布地址默认监听 deploy.nexus3.<namespace>.cluster.k8s
+  host:
+  #deployHost: deploy.nexus3.cluster.k8s
+  rules:
+    - host: docker.pre.cluster.k8s
+      paths:
+        - path: /v2
+          target: docker-port
+
+
 # 存储配置
 pvc:
   storageClassName: permanent
@@ -23,18 +45,9 @@ pvc:
       storage: 100Gi
 
 # 节点选择器
-nodeSelector: {}
+nodeSelector: { }
 # 污点容忍度
-tolerations: []
+tolerations: [ ]
 # 亲和性，如果为空时，默认的亲和性尽量将同一应用的 Pod 分布到不同的节点上
 # 如果不为空时，以用户的亲和性为准
-affinity: {}
-
-# 流量入口
-ingress:
-  enabled: true
-  className: "nginx"
-  # 部署后，如果未指定 host，则默认监听 nexus3.<namespace>.cluster.k8s
-  # docker 发布地址默认监听 deploy.nexus3.<namespace>.cluster.k8s
-  #host: nexus3.cluster.k8
-  #deployHost: deploy.nexus3.cluster.k8s
+affinity: { }
