@@ -2,6 +2,8 @@
 ## 概述
 &emsp;&emsp;使用本 Chart 可以快速将 Central Studio[[链接](https://central-x.com/studio/)]部署到 Kubernetes 集群中。
 
+&emsp;&emsp;由于 Central Studio 内部有多个微服务组件，为了简化部署，在初始启动时会自动初始化很多内置的参数，包括通信服务名等等。这些内置参数没办法动态获取服务名，因此没办法在单个命名空间下部署多套 Central Studio。
+
 ## 组件依赖
 ### 数据库
 &emsp;&emsp;Central Studio 依赖数据库组件，因此需要提前在 Kubernetes 集群中或在外部独立部署数据库。
