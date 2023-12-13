@@ -15,9 +15,6 @@ pvc:
 # 目前只支持单实例
 ####################################################################
 mysql:
-  # 是否部署
-  # 如果为 False，会删除 Deployment，但是不会删除 PVC
-  enabled: true
   # 仓库配置
   image:
     repository: mysql

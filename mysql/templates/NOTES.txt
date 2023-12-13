@@ -1,7 +1,7 @@
 MySQL is starting...
  __  __        _____       _
 |  \/  |      / ____|     | |    MySql {{ .Chart.AppVersion }}
-| \  / |_   _| (___   __ _| |    Listen: {{ .Release.Name }}:3306
+| \  / |_   _| (___   __ _| |    Listening {{ .Release.Name }}:3306
 | |\/| | | | |\___ \ / _` | |
 | |  | | |_| |____) | (_| | |    https://www.mysql.com
 |_|  |_|\__, |_____/ \__, |_|
@@ -26,7 +26,7 @@ server {
         client_max_body_size   1000m;
 
         # 传递代理信息
-        proxy_set_header   Host                {{ .Values.ingress.host | default (print .Release.Name "." .Release.Namespace ".cluster.k8s") }};
+        proxy_set_header   Host                {{ .Values.cloudbeaver.ingress.host | default (print .Release.Name "." .Release.Namespace ".cluster.k8s") }};
         proxy_set_header   X-Real-IP           $remote_addr;                 # 用户真实 IP
         proxy_set_header   X-Forwarded-Host    $http_host;                   # 用户访问服务器的真实域名
         proxy_set_header   X-Forwarded-Port    $server_port;                 # 用户访问服务器的真实端口

@@ -6,16 +6,24 @@
 {{- end }}
 
 {{/*
+    组件标签
+*/}}
+{{- define "cloudbeaver.componentLabels" -}}
+app.kubernetes.io/name: {{ include "cloudbeaver.name" . }}
+{{- end }}
+
+{{/*
     通用应用标签
 */}}
 {{- define "cloudbeaver.labels" -}}
 {{ include "global.labels" . }}
+{{ include "cloudbeaver.componentLabels" . }}
 {{- end }}
 
 {{/*
     应用选择标签
 */}}
 {{- define "cloudbeaver.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "cloudbeaver.name" . }}
+{{ include "cloudbeaver.componentLabels" . }}
 {{ include "global.selectorLabels" . }}
 {{- end }}
