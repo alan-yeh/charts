@@ -6,16 +6,24 @@
 {{- end }}
 
 {{/*
+    组件标签
+*/}}
+{{- define "redis.componentLabels" -}}
+app.kubernetes.io/name: {{ include "redis.name" . }}
+{{- end }}
+
+{{/*
     通用应用标签
 */}}
 {{- define "redis.labels" -}}
 {{ include "global.labels" . }}
+{{ include "redis.componentLabels" . }}
 {{- end }}
 
 {{/*
     应用选择标签
 */}}
 {{- define "redis.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "redis.name" . }}
+{{ include "redis.componentLabels" . }}
 {{ include "global.selectorLabels" . }}
 {{- end }}

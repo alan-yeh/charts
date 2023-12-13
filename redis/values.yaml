@@ -34,16 +34,6 @@ insight:
     limits:
       cpu: 1000m
       memory: 512Mi
-  # 自动横向拓展
-  autoscaling:
-    # 是否启用横向拓展，如果不启用，则默认启动 minReplicas 个副本
-    enabled: false
-    # 最小副本数量
-    minReplicas: 1
-    # 最大副本数量
-    maxReplicas: 5
-    # CPU 超过 resource.limit 里面限制的 60% 就触发横向拓展
-    targetCPUPercentage: 60
   # 节点选择器
   nodeSelector: {}
   # 污点容忍度
