@@ -24,6 +24,7 @@
 */}}
 {{- define "global.labels" -}}
 helm.sh/chart: {{ include "global.chart" . }}
+{{ include "global.selectorLabels" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/part-of: {{ .Chart.Name | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
