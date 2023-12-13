@@ -1,6 +1,6 @@
 # Redis
 ## 概述
-&emsp;&emsp;使用本 Chart 可以快速将 Redis[[链接](https://central-x.com/studio/)]部署到 Kubernetes 集群中。为了方便运维，本 Chart 还包含了 RedisInsight。
+&emsp;&emsp;使用本 Chart 可以快速将 Redis[[链接](https://redis.io)]部署到 Kubernetes 集群中。为了方便运维，本 Chart 还包含了 RedisInsight。
 
 &emsp;&emsp;本 Chart 支持在同一个命名空间里部署多个 Redis 实例。但是本部署包不支持 Redis 集群、高可用、哨兵模式。同时需要注意，将 Redis 部署在 Kubernetes 集群中作为生产用途时，需要注意存储是否支持高性能 IO，否则数据库极容易变成应用的性能瓶颈。
 

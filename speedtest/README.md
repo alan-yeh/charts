@@ -1,6 +1,6 @@
 # SpeedTest
 ## 概述
-&emsp;&emsp;使用本 Chart 可以快速将 SpeedTest[[链接](https://central-x.com/studio/)]部署到 Kubernetes 集群中。
+&emsp;&emsp;使用本 Chart 可以快速将 SpeedTest[[链接](https://hub.docker.com/r/adolfintel/speedtest)]部署到 Kubernetes 集群中。
 
 &emsp;&emsp;一般情况下，一个命名空间一般只需要一个速度测试工具，因此在制作本 Chart 包时，不支持在同一个命名空间里部署多个 SpeedTest 实例。
 
