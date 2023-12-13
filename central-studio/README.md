@@ -45,5 +45,5 @@ global:
 $ helm install <release-name> . -f central-studio.yaml
 ```
 
-### 访问应用
+## 使用
 &emsp;&emsp;Chart 包在完成部署操作后，会创建一个监听域名 `studio.<namespace>.cluster.k8s` 的 Ingress 资源，该 Ingress 会将所有请求转发到网关。运维人员需要自行在外部通过 Nginx 等方式将请求转发到集群内部。
