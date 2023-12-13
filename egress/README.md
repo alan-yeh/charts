@@ -10,10 +10,8 @@
 
 &emsp;&emsp;基于以上理论，为了方便将外部业务系统快速封装成内部服务（Service），因此封装了 Egress。Egress 可以根据用户配置的路由信息，自动生成对应代理信息和 Kubernetes Service，后续集群内部的服务就可以通过 `http://<service-name>` 的方式访问外部网络。
 
-## 使用
-
-- **为出口节点添加标签**
-
+## 部署
+### 修改集群节点信息
 &emsp;&emsp;由于只有指定点节才可以与外部业务系统通信，因此需要为这个节点添加标签，然后 Egress 通过节点选择器固定到这个节点上。推荐为这个节点添加 `cluster.k8s/egress: enabled` 标签：
 
 ```bash
@@ -22,9 +20,8 @@ $ kubectl label node node5.cluster.k8s cluster.k8s/egress=enabled
 node/node5.cluster.k8s labed
 ```
 
-- **修改配置文件**
-
-&emsp;&emsp;修改 Egress 的 `values.yaml` 配置文件，修改 `routers` 节点，添加代理配置：
+### 创建配置文件
+&emsp;&emsp;创建配置文件 `egress.yaml`，将 `values.yaml` 中的内容复制到该文件中。删除其余无用的配置，保留需要修改的内容，如添加代理配置：
 
 ```yaml
 # 代理路由
@@ -47,14 +44,21 @@ routers:
       - 10.10.20.0
 ```
 
-- **部署 Charts**
-
-&emsp;&emsp;修改 helm 部署
+### 部署应用
+&emsp;&emsp;使用 helm 执行以下命令，完成部署：
 
 ```bash
-$ helm install egress .
+# 使用 egress.yaml 指定的参数部署
+$ helm install <release-name> . -f egress.yaml
 ```
 
-- **调用外部服务**
+## 使用
+&emsp;&emsp;Egress 完成部署后会根据上面的路由配置中的 `routers.name` 生成 Kubernetes Service，因此现在就可以在集群内部通过 `http://dashboard` 或 `http://nexus` 的方式调用外部系统的接口了。
 
-&emsp;&emsp;Egress 会根据上面的路由配置中的 `routers.name` 生成 Kubernetes Service，因此现在就可以在集群内部通过 `http://dashboard` 或 `http://nexus` 的方式调用外部系统的接口了。
+```bash
+# 进入集群的 pod
+$ kubectl exec -it <pod> -- bash
+
+# 在 pod 里模仿应用访问外部系统
+$ curl http://nexus
+```
