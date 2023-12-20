@@ -24,8 +24,8 @@ global:
       memory: 512Mi
   # Jvm 资源限制
   jvm:
-    xms: 256m
-    xmx: 256m
+    - "-Xmx256m"
+    - "-Xms256m"
   # 自动横向拓展
   autoscaling:
     # 是否启用自动横向拓展。如果不启用，则默认启动 minReplicas 个副本
@@ -82,49 +82,42 @@ ingress:
 
 # 网关
 gateway:
-  enabled: true
   name: central-gateway
   image:
     repository: central-gateway
 
 # 认证中心
-security:
-  enabled: true
-  name: central-security
+identity:
+  name: central-identity
   image:
-    repository: central-security
+    repository: central-identity
 
 # 仪表中心
 dashboard:
-  enabled: true
   name: central-dashboard
   image:
     repository: central-dashboard
 
 # 数据服务中心
 provider:
-  enabled: true
   name: central-provider
   image:
     repository: central-provider
 
 # 日志中心
 logging:
-  enabled: true
   name: central-logging
   image:
     repository: central-logging
 
 # 存储中心
 storage:
-  enabled: true
   name: central-storage
   image:
     repository: central-storage
 
 # 广播中心
 multicast:
-  enabled: true
   name: central-multicast
   image:
     repository: central-multicast

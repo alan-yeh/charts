@@ -24,8 +24,9 @@ spec:
           image: "{{ $conf.image.registry }}/{{ $conf.image.repository }}:{{ $conf.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ $conf.image.pullPolicy }}
           args:
-            - "-Xms{{$conf.jvm.xms}}"
-            - "-Xmx{{$conf.jvm.xmx}}"
+            {{- range $conf.jvm }}
+            - {{ . | quote }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 3600

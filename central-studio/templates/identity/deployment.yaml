@@ -1,4 +1,4 @@
-{{- $conf := mustMergeOverwrite (dict) (deepCopy .Values.global) (deepCopy .Values.security) -}}
+{{- $conf := mustMergeOverwrite (dict) (deepCopy .Values.global) (deepCopy .Values.identity) -}}
 {{- if $conf.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -6,37 +6,38 @@ metadata:
   name: {{ $conf.name }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "security.labels" . | nindent 4 }}
+    {{- include "identity.labels" . | nindent 4 }}
 spec:
   {{- if not $conf.autoscaling.enabled }}
   replicas: {{ $conf.autoscaling.minReplicas }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "security.selectorLabels" . | nindent 6 }}
+      {{- include "identity.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "security.selectorLabels" . | nindent 8 }}
+        {{- include "identity.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: {{ $conf.name }}
           image: "{{ $conf.image.registry }}/{{ $conf.image.repository }}:{{ $conf.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ $conf.image.pullPolicy }}
           args:
-            - "-Xms{{$conf.jvm.xms}}"
-            - "-Xmx{{$conf.jvm.xmx}}"
+            {{- range $conf.jvm }}
+            - {{ . | quote }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 3200
               protocol: TCP
           # livenessProbe:
           #   httpGet:
-          #     path: /security/__health/live
+          #     path: /identity/__health/live
           #     port: http
           # readinessProbe:
           #   httpGet:
-          #     path: /security/__health/ready
+          #     path: /identity/__health/ready
           resources:
           {{- toYaml $conf.resources | nindent 12 }}
           volumeMounts:

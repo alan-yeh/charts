@@ -18,7 +18,7 @@ Central Studio is starting...  #
      +
 
 已部署以下服务:
-{{- range $index, $componentKey := (list "provider" "dashboard" "logging" "gateway" "security" "storage" "multicast") }}
+{{- range $index, $componentKey := (list "provider" "dashboard" "logging" "gateway" "identity" "storage" "multicast") }}
 {{- $componentVal := (mustMergeOverwrite (dict) (deepCopy $.Values.global) (get $.Values $componentKey)) }}
 {{ printf "%2d" (add $index 1) }}. {{ $componentKey }}{{ ternary "" "(未部署)" $componentVal.enabled }}: http://{{ $componentVal.name }}
 {{- end }}

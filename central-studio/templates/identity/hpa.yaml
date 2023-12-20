@@ -1,4 +1,4 @@
-{{- $conf := mustMergeOverwrite (dict) (deepCopy .Values.global) (deepCopy .Values.security) -}}
+{{- $conf := mustMergeOverwrite (dict) (deepCopy .Values.global) (deepCopy .Values.identity) -}}
 {{- if and $conf.enabled $conf.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -6,7 +6,7 @@ metadata:
   name: {{ $conf.name }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "security.labels" . | nindent 4 }}
+    {{- include "identity.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
