@@ -6,7 +6,11 @@ metadata:
   labels:
     {{- include "global.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       {{- include "global.selectorLabels" . | nindent 6 }}
@@ -25,6 +29,22 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              port: http
+              path: /webman/3rdparty/pan-xunlei-com/index.cgi/device/now
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /webman/3rdparty/pan-xunlei-com/index.cgi/device/now
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
           volumeMounts:
             - name: data-volume
               mountPath: /xunlei/data
