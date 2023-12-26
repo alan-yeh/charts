@@ -5,7 +5,11 @@ metadata:
   labels:
     {{- include "global.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       {{- include "global.selectorLabels" . | nindent 6 }}
@@ -27,14 +31,22 @@ spec:
               containerPort: {{ $it.port }}
               protocol: TCP
             {{- end }}
-          # livenessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
-          # readinessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
+          startupProbe:
+            httpGet:
+              port: http
+              path: /
+            initialDelaySeconds: 20
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
