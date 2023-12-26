@@ -7,7 +7,11 @@ metadata:
   labels:
     {{- include "insight.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       {{- include "insight.selectorLabels" . | nindent 6 }}
@@ -24,8 +28,33 @@ spec:
             - name: http
               containerPort: 8001
               protocol: TCP
+          env:
+            - name: RITRUSTEDORIGINS
+              value: {{ .Values.insight.conf.trustedOrigins | quote }}
+            {{- if .Values.insight.conf.subpath }}
+            - name: RIPROXYPATH
+              value: {{ .Values.insight.conf.subpath | quote }}
+            {{- end }}
+            - name: RIPROXYPREFIX
+              value: "X-Forwarded-Prefix"
           resources:
             {{- toYaml .Values.insight.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              port: http
+              path: /api/config/
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /api/config/
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
       {{- with .Values.insight.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -34,26 +63,8 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.insight.affinity }}
       {{- with .Values.insight.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- else }}
-      affinity:
-        # 让副本分布到不同的节点上，避免单点故障
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                topologyKey: "kubernetes.io/hostname"
-                labelSelector:
-                  matchExpressions:
-                    - key: "app.kubernetes.io/name"
-                      operator: In
-                      values: ["redis-insight"]
-                    - key: "app.kubernetes.io/instance"
-                      operator: In
-                      values: [{{ .Release.Name | quote }}]
       {{- end }}
 {{- end }}

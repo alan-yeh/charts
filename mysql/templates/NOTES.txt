@@ -7,7 +7,7 @@ MySQL is starting...
 |_|  |_|\__, |_____/ \__, |_|
          __/ |          | |
         |___/           |_|
-
+{{- if .Values.cloudbeaver.enabled }}
 使用 Nginx 反向代理 CloudBeaver 时，配置如下:
 
 # 集群 Ingress 流量入口
@@ -42,3 +42,4 @@ server {
         proxy_send_timeout      60s;
     }
 }
+{{- end }}

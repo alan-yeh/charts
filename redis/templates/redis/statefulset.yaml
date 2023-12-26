@@ -6,7 +6,11 @@ metadata:
   labels:
     {{- include "redis.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       {{- include "redis.selectorLabels" . | nindent 6 }}
@@ -21,7 +25,7 @@ spec:
           imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
           command: ["redis-server", "/etc/redis/redis.conf"]
           ports:
-            - name: http
+            - name: socket
               containerPort: 6379
               protocol: TCP
           resources:
@@ -30,14 +34,32 @@ spec:
             - name: conf
               mountPath: /etc/redis/redis.conf
               subPath: redis.conf
+          startupProbe:
+            tcpSocket:
+              port: socket
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 20
           livenessProbe:
             tcpSocket:
-              port: 6379
-            initialDelaySeconds: 30
-            timeoutSeconds: 1
+              port: socket
+            timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 3
+      {{- with .Values.redis.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
         - name: conf
           configMap:

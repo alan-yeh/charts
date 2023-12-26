@@ -10,7 +10,7 @@ spec:
   ports:
     - name: redis-port
       port: 6379
-      targetPort: http
+      targetPort: socket
       protocol: TCP
   selector:
     {{- include "redis.selectorLabels" . | nindent 4 }}
