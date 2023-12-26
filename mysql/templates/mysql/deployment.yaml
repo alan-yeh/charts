@@ -31,11 +31,17 @@ spec:
             - name: data-volume
               mountPath: /var/lib/mysql
               subPath: mysql
+          startupProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
           livenessProbe:
             tcpSocket:
               port: 3306
-            initialDelaySeconds: 30
-            timeoutSeconds: 1
+            timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 3
