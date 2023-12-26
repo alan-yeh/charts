@@ -1,3 +1,4 @@
+{{- if not .Values.maintenance }}
 {{- if .Values.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -21,4 +22,5 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.autoscaling.targetCPUPercentage }}
     {{- end }}
+{{- end }}
 {{- end }}

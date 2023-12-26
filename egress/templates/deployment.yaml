@@ -5,7 +5,9 @@ metadata:
   labels:
     {{- include "global.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.autoscaling.minReplicas }}
   {{- end }}
   selector:
