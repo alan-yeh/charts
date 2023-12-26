@@ -1,3 +1,7 @@
+# 维护状态
+# 当进入维护状态时，hpa 将会失效，所有的 Deployment 和 StatefulSet 的 replicas 将被设置 0
+maintenance: false
+
 # 镜像
 image:
   registry: docker.io
