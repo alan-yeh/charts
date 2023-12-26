@@ -38,7 +38,7 @@ config:
     host: smtp.exmail.qq.com
     port: 465
     secure: ssl
-    name: notice@central-x.com
+    name: noreply@central-x.com
     password: <smtp-password>
     fromAddress: NextCloud
     domain: central-x.com
