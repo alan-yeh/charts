@@ -7,7 +7,11 @@ metadata:
   labels:
     {{- include "cloudbeaver.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       {{- include "cloudbeaver.selectorLabels" . | nindent 6 }}
@@ -30,6 +34,21 @@ spec:
               subPath: cloudbeaver
           resources:
             {{- toYaml .Values.cloudbeaver.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /icons/logo.svg
+              port: http
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /icons/logo.svg
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
       {{- with .Values.cloudbeaver.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

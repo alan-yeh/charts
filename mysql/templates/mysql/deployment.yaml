@@ -6,7 +6,11 @@ metadata:
   labels:
     {{- include "mysql.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       {{- include "mysql.selectorLabels" . | nindent 6 }}
@@ -33,14 +37,14 @@ spec:
               subPath: mysql
           startupProbe:
             tcpSocket:
-              port: 3306
-            initialDelaySeconds: 5
+              port: http
+            initialDelaySeconds: 10
             timeoutSeconds: 5
             periodSeconds: 5
-            failureThreshold: 10
+            failureThreshold: 20
           livenessProbe:
             tcpSocket:
-              port: 3306
+              port: http
             timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
