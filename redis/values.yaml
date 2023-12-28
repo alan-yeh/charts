@@ -22,7 +22,9 @@ redis:
   nodeSelector: {}
   # 污点容忍度
   tolerations: []
-  # 亲和性，如果为空时，默认的亲和性尽量将同一应用的 Pod 分布到不同的节点上
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
   # 如果不为空时，以用户的亲和性为准
   affinity: {}
   # 修改 redis.conf
@@ -52,7 +54,9 @@ insight:
   nodeSelector: {}
   # 污点容忍度
   tolerations: []
-  # 亲和性，如果为空时，默认的亲和性尽量将同一应用的 Pod 分布到不同的节点上
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
   # 如果不为空时，以用户的亲和性为准
   affinity: {}
   ingress:
