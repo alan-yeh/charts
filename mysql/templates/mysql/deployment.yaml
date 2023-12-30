@@ -54,6 +54,30 @@ spec:
               value: "Asia/Shanghai"
             - name: MYSQL_ROOT_PASSWORD
               value: {{ .Values.mysql.config.password | quote }}
+      {{- with .Values.mysql.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mysql.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mysql.affinity }}
+      {{- with .Values.mysql.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      affinity:
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+      {{- end }}
       volumes:
         - name: cnf-volume
           configMap:
