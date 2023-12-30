@@ -57,7 +57,15 @@ spec:
       {{- end }}
       {{- else }}
       affinity:
-        # 让副本分布到不同的节点上，避免单点故障
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+        # 让 Pod 分布到不同的节点上，避免单点故障
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -67,7 +75,7 @@ spec:
                   matchExpressions:
                     - key: "app.kubernetes.io/name"
                       operator: In
-                      values: [{{ include "global.name" . | quote }}]
+                      values: ["{{ include "global.name" . }}"]
                     - key: "app.kubernetes.io/instance"
                       operator: In
                       values: [{{ .Release.Name | quote }}]
