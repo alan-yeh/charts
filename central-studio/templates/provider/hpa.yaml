@@ -1,4 +1,5 @@
-{{- $conf := mustMergeOverwrite (dict) (deepCopy .Values.global) (deepCopy .Values.provider) -}}
+{{- $conf := mustMergeOverwrite (deepCopy .Values.global) (deepCopy .Values.provider) -}}
+{{- if not $conf.maintenance }}
 {{- if and $conf.enabled $conf.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -21,4 +22,5 @@ spec:
         target:
           type: Utilization
           averageUtilization: {{ $conf.autoscaling.targetCPUPercentage }}
+{{- end }}
 {{- end }}

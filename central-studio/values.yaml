@@ -2,7 +2,12 @@
 # 全局配置
 ##################################################################
 global:
+  # 启用状态
+  # 如果设为 false，则将不部署指定服务
   enabled: true
+  # 维护状态
+  # 当进入维护状态时，hpa 将会失效，所有的 Deployment 和 StatefulSet 的 replicas 将被设置 0
+  maintenance: false
   image:
     # 镜像仓库地址
     registry: docker.io/centralx
@@ -40,7 +45,10 @@ global:
   nodeSelector: {}
   # 污点容忍度
   tolerations: []
-  # 亲和性，如果为空时，默认的亲和性尽量将同一应用的 Pod 分布到不同的节点上
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 高可用时，尽量将同一应用的 Pod 分布到不同的节点上，避免单点故障
+  # 2. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
   # 如果不为空时，以用户的亲和性为准
   affinity: {}
   # 通用配置文件，里面的内容会挂载到 /application/config 目录下

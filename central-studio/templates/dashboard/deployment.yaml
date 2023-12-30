@@ -1,4 +1,4 @@
-{{- $conf := mustMergeOverwrite (dict) (deepCopy .Values.global) (deepCopy .Values.dashboard) -}}
+{{- $conf := mustMergeOverwrite (deepCopy .Values.global) (deepCopy .Values.dashboard) -}}
 {{- if $conf.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -8,7 +8,9 @@ metadata:
   labels:
     {{- include "dashboard.labels" . | nindent 4 }}
 spec:
-  {{- if not $conf.autoscaling.enabled }}
+  {{- if $conf.maintenance }}
+  replicas: 0
+  {{- else if not $conf.autoscaling.enabled }}
   replicas: {{ $conf.autoscaling.minReplicas }}
   {{- end }}
   selector:
@@ -31,15 +33,24 @@ spec:
             - name: http
               containerPort: 3100
               protocol: TCP
-          # livenessProbe:
-          #   httpGet:
-          #     path: /dashboard/__health/live
-          #     port: http
-          # readinessProbe:
-          #   httpGet:
-          #     path: /dashboard/__health/ready
           resources:
           {{- toYaml $conf.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              port: http
+              path: /dashboard/__probe
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /dashboard/__probe
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
           volumeMounts:
             - name: config-volume
               mountPath: /workspace/config
@@ -60,7 +71,15 @@ spec:
       {{- end }}
       {{- else }}
       affinity:
-        # 让副本分布到不同的节点上，避免单点故障
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+        # 让 Pod 分布到不同的节点上，避免单点故障
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
