@@ -24,7 +24,7 @@ spec:
           image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
           ports:
-            - name: http
+            - name: socket
               containerPort: 3306
               protocol: TCP
           resources:
@@ -37,14 +37,14 @@ spec:
               subPath: mysql
           startupProbe:
             tcpSocket:
-              port: http
+              port: socket
             initialDelaySeconds: 10
             timeoutSeconds: 5
             periodSeconds: 5
             failureThreshold: 20
           livenessProbe:
             tcpSocket:
-              port: http
+              port: socket
             timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1

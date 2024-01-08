@@ -8,9 +8,9 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: http
+    - name: socket
       port: 3306
-      targetPort: http
+      targetPort: socket
       protocol: TCP
   selector:
     {{- include "mysql.selectorLabels" . | nindent 4 }}
