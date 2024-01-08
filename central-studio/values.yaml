@@ -41,6 +41,34 @@ global:
     maxReplicas: 2
     # CPU 超过 resource.limits.cpu 里面限制的 60% 就触发横向拓展
     targetCPUPercentage: 60
+  # 探针
+  probes:
+    # 探针授权凭证
+    authorization: cyLfRYFSnhHOpqAAzFyqvCpOwnlIyzJcCUIQqYHSKaOcnTqtiBjhOvKLNasivqjI
+    # 启动探针
+    # 启用了启动探针时，存活探针和就绪探针的 initialDelaySeconds 将失效
+    startup:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 5
+      failureThreshold: 20
+    # 存活探针
+    liveness:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 3
+    # 就绪探针
+    readiness:
+      enabled: false
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 3
   # 节点选择器
   nodeSelector: {}
   # 污点容忍度
@@ -111,6 +139,9 @@ provider:
   name: central-provider
   image:
     repository: central-provider
+  probes:
+    startup:
+      initialDelaySeconds: 20
 
 # 日志中心
 logging:

@@ -35,22 +35,51 @@ spec:
               protocol: TCP
           resources:
           {{- toYaml $conf.resources | nindent 12 }}
+          {{- if $conf.probes.startup.enabled }}
           startupProbe:
             httpGet:
               port: http
               path: /__probe
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 5
-            failureThreshold: 20
+              httpHeaders:
+                - name: Authorization
+                  value: {{ $conf.probes.authorization }}
+            initialDelaySeconds: {{ $conf.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ $conf.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ $conf.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ $conf.probes.startup.failureThreshold }}
+          {{- end }}
+          {{- if $conf.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
               port: http
               path: /__probe
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
+              httpHeaders:
+                - name: Authorization
+                  value: {{ $conf.probes.authorization }}
+            {{- if not $conf.probes.startup.enabled }}
+            initialDelaySeconds: {{ $conf.probes.liveness.initialDelaySeconds }}
+            {{- end }}
+            periodSeconds: {{ $conf.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ $conf.probes.liveness.timeoutSeconds }}
+            successThreshold: {{ $conf.probes.liveness.successThreshold }}
+            failureThreshold: {{ $conf.probes.liveness.failureThreshold }}
+          {{- end }}
+          {{- if $conf.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /__probe
+              httpHeaders:
+                - name: Authorization
+                  value: {{ $conf.probes.authorization }}
+            {{- if not $conf.probes.startup.enabled }}
+            initialDelaySeconds: {{ $conf.probes.readiness.initialDelaySeconds }}
+            {{- end }}
+            periodSeconds: {{ $conf.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ $conf.probes.readiness.timeoutSeconds }}
+            successThreshold: {{ $conf.probes.readiness.successThreshold }}
+            failureThreshold: {{ $conf.probes.readiness.failureThreshold }}
+          {{- end }}
           volumeMounts:
             - name: config-volume
               mountPath: /workspace/config
