@@ -1,5 +1,5 @@
 apiVersion: v2
-name: nextcloud
+name: helm-nextcloud
 description: Helm chart for nextcloud
 type: application
 version: 27.0.2
