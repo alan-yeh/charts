@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "taskmanager.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "taskmanager.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "taskmanager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "taskmanager.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: waitfor-zookeeper
+          image: "centralx/waitfor:latest"
+          imagePullPolicy: Always
+          args:
+            - "tcp"
+            - "pinpoint-zookeeper"
+            - "2181"
+{{/*        - name: waitfor-jobmanager*/}}
+{{/*          image: "centralx/waitfor:latest"*/}}
+{{/*          imagePullPolicy: Always*/}}
+{{/*          args:*/}}
+{{/*            - "get"*/}}
+{{/*            - "http://pinpoint-flink-jobmanager/jobs/overview"*/}}
+      containers:
+        - name: taskmanager
+          image: "{{ .Values.taskmanager.image.repository }}:{{ .Values.taskmanager.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.taskmanager.image.pullPolicy }}
+          args:
+            - "taskmanager"
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+            - name: rpc
+              containerPort: 6123
+              protocol: TCP
+            - name: blob-server
+              containerPort: 6124
+              protocol: TCP
+            - name: query-server
+              containerPort: 6125
+              protocol: TCP
+            - name: flink
+              containerPort: 19994
+              protocol: TCP
+{{/*          startupProbe:*/}}
+{{/*            exec:*/}}
+{{/*              command: ["flink", "list"]*/}}
+{{/*            initialDelaySeconds: 30*/}}
+{{/*            periodSeconds: 5*/}}
+{{/*            timeoutSeconds: 10*/}}
+{{/*            failureThreshold: 20*/}}
+          livenessProbe:
+            exec:
+              command: ["flink", "list"]
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: JOB_MANAGER_RPC_ADDRESS
+              value: "pinpoint-flink-jobmanager"
+          resources:
+            {{- toYaml .Values.taskmanager.resources | nindent 12 }}
+      {{- with .Values.taskmanager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.taskmanager.affinity }}
+      {{- with .Values.taskmanager.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      affinity:
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+      {{- end }}
+      {{- with .Values.taskmanager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

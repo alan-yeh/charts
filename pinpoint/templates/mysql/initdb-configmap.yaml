@@ -1,0 +1,13 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "mysql.name" . }}-initdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+data:
+  {{- $root := . }}
+  {{- range $path, $_ := .Files.Glob "resources/mysql/initdb.d/**" }}
+  {{ base $path }}: |
+    {{- tpl ($root.Files.Get $path) $root | nindent 4 }}
+  {{- end }}

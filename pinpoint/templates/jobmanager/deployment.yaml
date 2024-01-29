@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jobmanager.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "jobmanager.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "jobmanager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "jobmanager.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: waitfor-zookeeper
+          image: "centralx/waitfor:latest"
+          imagePullPolicy: Always
+          args:
+            - "tcp"
+            - "pinpoint-zookeeper"
+            - "2181"
+      containers:
+        - name: jobmanager
+          image: "{{ .Values.jobmanager.image.repository }}:{{ .Values.jobmanager.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.jobmanager.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+            - name: rpc
+              containerPort: 6123
+              protocol: TCP
+            - name: blob-server
+              containerPort: 6124
+              protocol: TCP
+            - name: query-server
+              containerPort: 6125
+              protocol: TCP
+            - name: flink
+              containerPort: 19994
+              protocol: TCP
+          args:
+            - "standalone-job"
+            - "-p"
+            - "1"
+            - "pinpoint-flink-job.jar"
+            - "-spring.profiles.active"
+            - "release"
+{{/*          startupProbe:*/}}
+{{/*            exec:*/}}
+{{/*              command: ["flink", "list"]*/}}
+{{/*            initialDelaySeconds: 60*/}}
+{{/*            periodSeconds: 5*/}}
+{{/*            timeoutSeconds: 10*/}}
+{{/*            failureThreshold: 20*/}}
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /jobs/overview
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: JOB_MANAGER_RPC_ADDRESS
+              value: "pinpoint-flink-jobmanager"
+            - name: PINPOINT_ZOOKEEPER_ADDRESS
+              value: "{{ .Values.jobmanager.config.pinpoint.zookeeper.address }}"
+          resources:
+            {{- toYaml .Values.jobmanager.resources | nindent 12 }}
+      {{- with .Values.jobmanager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.jobmanager.affinity }}
+      {{- with .Values.jobmanager.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      affinity:
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+      {{- end }}
+      {{- with .Values.jobmanager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

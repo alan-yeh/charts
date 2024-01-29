@@ -1,0 +1,13 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "hbase.name" . }}-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "hbase.labels" . | nindent 4 }}
+data:
+  {{- $root := . }}
+  {{- range $path, $_ := .Files.Glob "resources/hbase/init/**" }}
+  {{ base $path }}: |
+    {{- tpl ($root.Files.Get $path) $root | nindent 4 }}
+  {{- end }}

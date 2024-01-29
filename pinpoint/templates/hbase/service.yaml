@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pinpoint-hbase
+  labels:
+    {{- include "hbase.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: master-api-port
+      port: 16000
+      targetPort: master-api-port
+      protocol: TCP
+    - name: master-web-ui
+      port: 16010
+      targetPort: master-web-ui
+      protocol: TCP
+    - name: server-api-port
+      port: 16020
+      targetPort: server-api-port
+      protocol: TCP
+    - name: server-web-ui
+      port: 16030
+      targetPort: server-web-ui
+      protocol: TCP
+    - name: socket
+      port: 16201
+      targetPort: socket
+      protocol: TCP
+  selector:
+    {{- include "hbase.selectorLabels" . | nindent 4 }}

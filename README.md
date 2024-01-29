@@ -12,6 +12,7 @@
 - Redis: 缓存数据库
 - SpeedTest: 用于做网络速度测试
 - Xunlei: 迅雷下载
+- Pinpoint[[链接](https://pinpoint-apm.gitbook.io/pinpoint/)]: 应用性能监控
 
 ## License
 [MIT License](./LICENSE)

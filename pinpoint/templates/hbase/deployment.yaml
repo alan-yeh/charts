@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hbase.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "hbase.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "hbase.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "hbase.selectorLabels" . | nindent 8 }}
+    spec:
+      hostname: pinpoint-hbase
+      initContainers:
+        - name: waitfor-zookeeper
+          image: "centralx/waitfor:latest"
+          imagePullPolicy: Always
+          args:
+            - "tcp"
+            - "pinpoint-zookeeper"
+            - "2181"
+      containers:
+        - name: hbase
+          image: "{{ .Values.hbase.image.repository }}:{{ .Values.hbase.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.hbase.image.pullPolicy }}
+          ports:
+            - name: master-api-port
+              containerPort: 16000
+              protocol: TCP
+            - name: master-web-ui
+              containerPort: 16010
+              protocol: TCP
+            - name: server-api-port
+              containerPort: 16020
+              protocol: TCP
+            - name: server-web-ui
+              containerPort: 16030
+              protocol: TCP
+            - name: socket
+              containerPort: 16201
+              protocol: TCP
+          startupProbe:
+            tcpSocket:
+              port: master-api-port
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 20
+          livenessProbe:
+            tcpSocket:
+              port: master-api-port
+            periodSeconds: 5
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+          volumeMounts:
+            # 数据
+            - name: data-volume
+              mountPath: /workspace/data
+              subPath: hbase/data
+            # 初始化脚本
+            - name: init-volume
+              mountPath: /workspace/init
+            # 配置文件
+            - mountPath: /workspace/config
+              name: config-volume
+          resources:
+            {{- toYaml .Values.hbase.resources | nindent 12 }}
+      {{- with .Values.hbase.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.hbase.affinity }}
+      {{- with .Values.hbase.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      affinity:
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+      {{- end }}
+      {{- with .Values.hbase.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: data-volume
+          emptyDir: {}
+{{/*          persistentVolumeClaim:*/}}
+{{/*            claimName: {{ include "global.name" . }}*/}}
+        - name: config-volume
+          configMap:
+            name: {{ include "hbase.name" . }}
+        - name: init-volume
+          configMap:
+            name: {{ include "hbase.name" . }}-init

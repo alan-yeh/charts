@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "global.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "global.labels" . | nindent 4 }}
+spec:
+  {{- toYaml .Values.pvc | nindent 2 }}

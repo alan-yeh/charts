@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "web.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "web.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "web.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: waitfor-mysql
+          image: "centralx/waitfor:latest"
+          imagePullPolicy: Always
+          args:
+            - "tcp"
+            - "pinpoint-mysql"
+            - "3306"
+        - name: waitfor-zookeeper
+          image: "centralx/waitfor:latest"
+          imagePullPolicy: Always
+          args:
+            - "tcp"
+            - "pinpoint-zookeeper"
+            - "2181"
+        - name: waitfor-hbase
+          image: "centralx/waitfor:latest"
+          imagePullPolicy: Always
+          args:
+            - "tcp"
+            - "pinpoint-hbase"
+            - "16000"
+      containers:
+        - name: web
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: server-port
+              containerPort: 9997
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+{{/*          startupProbe:*/}}
+{{/*            httpGet:*/}}
+{{/*              port: http*/}}
+{{/*              path: /*/}}
+{{/*            initialDelaySeconds: 30*/}}
+{{/*            timeoutSeconds: 5*/}}
+{{/*            periodSeconds: 5*/}}
+{{/*            failureThreshold: 20*/}}
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: WEB_SERVER_PORT
+              value: "8080"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "release"
+            - name: PINPOINT_ZOOKEEPER_ADDRESS
+              value: "{{ .Values.web.config.pinpoint.zookeeper.address }}"
+            - name: ADMIN_PASSWORD
+              value: "{{ .Values.web.config.admin.password }}"
+            - name: CONFIG_SENDUSAGE
+              value: "false"
+            - name: WEB_LOGGING_LEVEL_ROOT
+              value: "INFO"
+            - name: CONFIG_SHOW_APPLICATIONSTAT
+              value: "true"
+            - name: JDBC_DRIVERCLASSNAME
+              value: "{{ .Values.web.config.jdbc.driverClassName }}"
+            - name: JDBC_URL
+              value: "{{ .Values.web.config.jdbc.url }}"
+            - name: JDBC_USERNAME
+              value: "{{ .Values.web.config.jdbc.username | default "root" }}"
+            - name: JDBC_PASSWORD
+              value: "{{ .Values.web.config.jdbc.password | default .Values.mysql.config.password}}"
+      {{- with .Values.web.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.web.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.web.affinity }}
+      {{- with .Values.web.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      affinity:
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+      {{- end }}

@@ -1,0 +1,263 @@
+####################################################################
+# 全局配置
+####################################################################
+# 维护状态
+# 当进入维护状态时，hpa 将会失效，所有的 Deployment 和 StatefulSet 的 replicas 将被设置 0
+maintenance: false
+
+# 存储配置
+pvc:
+  storageClassName: permanent
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+##################################################################
+# 应用流量入口配置
+##################################################################
+ingress:
+  enabled: true
+  className: nginx
+  # 完成部署后，如果未指定 host，则 Central Studio 默认监听 pinpoint.<namespace>.cluster.k8s
+  #host: ingress.central.k8s
+  annotations: {}
+
+####################################################################
+# Hbase
+####################################################################
+hbase:
+  image:
+    repository: centralx/hbase
+    tag: 1.7.2
+    pullPolicy: Always
+  config:
+  resources:
+    limits:
+      cpu: 5000m
+      memory: 5Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+####################################################################
+# MySql
+####################################################################
+mysql:
+  # 仓库配置
+  image:
+    repository: mysql
+    tag: 8.0.34
+    pullPolicy: Always
+  # MySql 配置
+  config:
+    # root 用户的密码
+    password: admin
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+
+####################################################################
+# Web
+####################################################################
+web:
+  # 仓库配置
+  image:
+    repository: pinpointdocker/pinpoint-web
+    tag:
+    pullPolicy: Always
+  config:
+    pinpoint:
+      zookeeper:
+        address: pinpoint-zookeeper
+    admin:
+      password: admin
+    jdbc:
+      driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://pinpoint-mysql:3306/pinpoint?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+      username: # 如果不填，则默认是 root
+      password: # 如果不填，则默认是 ${mysql.config.password}
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+
+####################################################################
+# Collector
+####################################################################
+collector:
+  # 仓库配置
+  image:
+    repository: pinpointdocker/pinpoint-collector
+    tag:
+    pullPolicy: Always
+  config:
+    zookeeper:
+      address: pinpoint-zookeeper
+    flink:
+      cluster:
+        enable: true
+        zookeeper:
+          address: pinpoint-zookeeper
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+
+####################################################################
+# Batch
+####################################################################
+batch:
+  # 仓库配置
+  image:
+    repository: pinpointdocker/pinpoint-batch
+    tag:
+    pullPolicy: Always
+  config:
+    admin:
+      password: admin
+    jdbc:
+      driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://pinpoint-mysql:3306/pinpoint?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+      username: # 如果不填，则默认是 root
+      password: # 如果不填，则默认是 ${mysql.config.password}
+    alertMail:
+      server:
+        url: smtp.gmail.com
+        port: 587
+        username: <username>@gmail.com
+        password: <password>
+      senderAddress: <username>@gmail.com
+      transportProtocol: smtp
+      smtp:
+        port: 25
+        ssl:
+          enable: true # 是否 SSL 传输
+        auth: true # 是否要登录
+        starttls: # 这个不知道干嘛的
+          enable: false
+          required: false
+      debug: false
+
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+
+####################################################################
+# Zookeeper
+####################################################################
+zookeeper:
+  # 仓库配置
+  image:
+    repository: zookeeper
+    tag: 3.4.13
+    pullPolicy: Always
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+
+####################################################################
+# Job Manager (Flink)
+####################################################################
+jobmanager:
+  # 仓库配置
+  image:
+    repository: pinpointdocker/pinpoint-flink
+    tag:
+    pullPolicy: Always
+  config:
+    pinpoint:
+      zookeeper:
+        address: pinpoint-zookeeper
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}
+
+####################################################################
+# Task Manager (Flink)
+####################################################################
+taskmanager:
+  # 仓库配置
+  image:
+    repository: pinpointdocker/pinpoint-flink
+    tag:
+    pullPolicy: Always
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # 节点选择器
+  nodeSelector: {}
+  # 污点容忍度
+  tolerations: []
+  # 亲和性
+  # 如果为空时，默认的亲和性规则如下:
+  # 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
+  # 如果不为空时，以用户的亲和性为准
+  affinity: {}

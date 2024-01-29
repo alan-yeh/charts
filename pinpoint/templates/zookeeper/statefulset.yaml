@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pinpoint-zookeeper
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zookeeper.labels" . | nindent 4 }}
+spec:
+  podManagementPolicy: Parallel
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
+  replicas: 3
+  {{- end }}
+  serviceName: pinpoint-zookeeper-headless
+  selector:
+    matchLabels:
+      {{- include "zookeeper.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "zookeeper.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        # 将 StatefulSet 产生的 Pod 的序号写入到 /zkdata/myid 中，作为 ZooKeeper 的实例序号
+        - name: preconfig
+          image: "busybox:1.36.1"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /zkdata
+              name: zkdata-volume
+          command: ["/bin/sh"]
+          args: ["-c", "echo $((${POD_NAME##*-} + 1)) > /zkdata/myid"]
+      containers:
+        - name: zookeeper
+          image: "{{ .Values.zookeeper.image.repository }}:{{ .Values.zookeeper.image.tag }}"
+          imagePullPolicy: {{ .Values.zookeeper.image.pullPolicy }}
+          ports:
+            - name: client-port
+              containerPort: 2181
+            - name: tls-port
+              containerPort: 3181
+            - name: follower-port
+              containerPort: 2888
+            - name: election-port
+              containerPort: 3888
+          volumeMounts:
+            - mountPath: /zookeeper-{{ .Values.zookeeper.image.tag }}/zkdata
+              name: zkdata-volume
+            - mountPath: /zookeeper-{{ .Values.zookeeper.image.tag }}/log
+              name: log-volume
+          resources:
+            {{- toYaml .Values.zookeeper.resources | nindent 12 }}
+{{/*          startupProbe:*/}}
+{{/*            exec:*/}}
+{{/*              command:*/}}
+{{/*                - zkServer.sh*/}}
+{{/*                - status*/}}
+{{/*            initialDelaySeconds: 30*/}}
+{{/*            timeoutSeconds: 10*/}}
+{{/*            periodSeconds: 5*/}}
+{{/*            failureThreshold: 20*/}}
+          livenessProbe:
+            exec:
+              command:
+                - zkServer.sh
+                - status
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: ZOO_PORT
+              value: "2181"
+            - name: ZOO_DATA_DIR
+              value: "/zookeeper-{{ .Values.zookeeper.image.tag }}/zkdata"
+            - name: ZOO_DATA_LOG_DIR
+              value: "/zookeeper-{{ .Values.zookeeper.image.tag }}/log"
+            - name: ZOO_TICK_TIME
+              value: "2000"
+            - name: ZOO_INIT_LIMIT
+              value: "10"
+            - name: ZOO_SYNC_LIMIT
+              value: "5"
+            - name: ZOO_AUTOPURGE_SNAPRETAINCOUNT
+              value: "3"
+            - name: ZOO_AUTOPURGE_PURGEINTERVAL
+              value: "1"
+            - name: ZOO_MAX_CLIENT_CNXNS
+              value: "60"
+            - name: ZOO_SERVERS
+              {{- $dot := . }}
+              value: "{{ range $i, $e := until 3 }}server.{{ add $e 1}}=pinpoint-zookeeper-{{ $e }}.pinpoint-zookeeper-headless.{{ $dot.Release.Namespace }}.svc.cluster.local:2888:3888 {{ end }}"
+      {{- with .Values.zookeeper.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.zookeeper.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.zookeeper.affinity }}
+      {{- with .Values.zookeeper.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      affinity:
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+      {{- end }}
+      volumes:
+        - name: zkdata-volume
+          emptyDir: {}
+        - name: log-volume
+          emptyDir: {}
+

@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "collector.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "collector.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.maintenance }}
+  replicas: 0
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "collector.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "collector.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: waitfor-zookeeper
+          image: "centralx/waitfor:latest"
+          imagePullPolicy: Always
+          args:
+            - "tcp"
+            - "pinpoint-zookeeper"
+            - "2181"
+        - name: waitfor-hbase
+          image: "centralx/waitfor:latest"
+          imagePullPolicy: Always
+          args:
+            - "tcp"
+            - "pinpoint-hbase"
+            - "16000"
+      containers:
+        - name: collector
+          image: "{{ .Values.collector.image.repository }}:{{ .Values.collector.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.collector.image.pullPolicy }}
+          ports:
+            # http
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+            # grpc
+            - name: grpc-agent
+              containerPort: 9991
+              protocol: TCP
+            - name: grpc-stat
+              containerPort: 9992
+              protocol: TCP
+            - name: grpc-span
+              containerPort: 9993
+              protocol: TCP
+            # thrift
+            - name: base-port
+              containerPort: 9994
+              protocol: TCP
+            - name: stat-tcp-port
+              containerPort: 9995
+              protocol: TCP
+            - name: stat-udp-port
+              containerPort: 9995
+              protocol: UDP
+            - name: span-tcp-port
+              containerPort: 9996
+              protocol: TCP
+            - name: span-udp-port
+              containerPort: 9996
+              protocol: UDP
+          resources:
+            {{- toYaml .Values.collector.resources | nindent 12 }}
+{{/*          startupProbe:*/}}
+{{/*            httpGet:*/}}
+{{/*              port: http*/}}
+{{/*              path: /channelz/html/getSpanReceiver*/}}
+{{/*              # 3.0.0 后变更为 /channelz/sockets*/}}
+{{/*            initialDelaySeconds: 60*/}}
+{{/*            timeoutSeconds: 5*/}}
+{{/*            periodSeconds: 5*/}}
+{{/*            failureThreshold: 20*/}}
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /channelz/html/getSpanReceiver
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "release"
+            - name: PINPOINT_ZOOKEEPER_ADDRESS
+              value: "{{ .Values.collector.config.zookeeper.address }}"
+            - name: CLUSTER_ENABLE
+              value: "true"
+            - name: LOGGING_LEVEL_ROOT
+              value: "INFO"
+            - name: FLINK_CLUSTER_ENABLE
+              value: "{{ .Values.collector.config.flink.cluster.enable }}"
+            - name: FLINK_CLUSTER_ZOOKEEPER_ADDRESS
+              value: "{{ .Values.collector.config.flink.cluster.zookeeper.address }}"
+      {{- with .Values.collector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.collector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.collector.affinity }}
+      {{- with .Values.collector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      affinity:
+        # 让 Pod 只调度到对应命名空间的节点上，保证生产环境和预发布环境节点隔离
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/namespace
+                    operator: In
+                    values: [{{ .Release.Namespace | quote }}]
+      {{- end }}
