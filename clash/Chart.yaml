@@ -1,0 +1,6 @@
+apiVersion: v2
+name: helm-clash
+description: Helm chart for clash
+type: application
+version: 1.18.0
+appVersion: "1.18.0"

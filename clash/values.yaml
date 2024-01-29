@@ -1,0 +1,33 @@
+# 维护状态
+# 当进入维护状态时，hpa 将会失效，所有的 Deployment 和 StatefulSet 的 replicas 将被设置 0
+maintenance: false
+
+# 镜像
+image:
+  registry: docker.io
+  repository: centralx/clash
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# 应用资源限制
+resources:
+  limits:
+    cpu: 2000m
+
+# 节点选择器
+nodeSelector: {}
+# 污点容忍度
+tolerations: []
+# 亲和性
+# 如果为空时，默认的亲和性规则如下:
+# 1. 必须将应用调度到与当前命名空间相同的节点上，保证生产环境和预发布环境节点隔离（节点需要提前打上标签 node.kubernetes.io/namespace=<namespace>）
+# 如果不为空时，以用户的亲和性为准
+affinity: {}
+
+# 流量入口
+ingress:
+  enabled: true
+  className: "nginx"
+  # 部署后，如果未指定 host，则默认监听 clash.<namespace>.cluster.k8s
+#  host: clash.cluster.k8s
