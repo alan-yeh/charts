@@ -1,5 +1,5 @@
 apiVersion: v2
-name: redis
+name: helm-redis
 description: A Helm chart for Redis
 type: application
 version: 7.0.11

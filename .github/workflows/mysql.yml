@@ -1,0 +1,38 @@
+name: Release MySql
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: 'Registry'
+        required: true
+        default: 'DockerHub'
+        type: choice
+        options:
+          - DockerHub
+
+jobs:
+  release-to-dockerhub:
+    name: Release to DockerHub
+    if: ${{ inputs.registry == 'DockerHub' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 3.14.0
+      - name: Login to DockerHub
+        uses: central-x/helm-login-action@v1
+        with:
+          registry: registry-1.docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Release Helm Chart
+        uses: central-x/helm-push-action@v1
+        with:
+          repository: oci://registry-1.docker.io/centralx
+          chart: ./mysql
