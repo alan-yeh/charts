@@ -31,6 +31,40 @@ global:
   jvm:
     - "-Xmx256m"
     - "-Xms256m"
+  apm:
+    pinpoint:
+      enabled: true
+      initContainers:
+        - name: install-pinpoint-agent
+          image: "centralx/install-pinpoint-java-agent:2.5.3"
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: plugin-volume
+              mountPath: /opt/java/agents
+      containers:
+        args:
+          - "-javaagent:./plugins/pinpoint/pinpoint-bootstrap.jar"
+          - "-Dpinpoint.agentName=$(POD_NAME)"
+          - "-Dpinpoint.applicationName=$(APPLICATION_NAME)"
+          - "-Dpinpoint.profiler.profiles.active=release"
+          - "-Dprofiler.transport.grpc.collector.ip=pinpoint-collector"
+          - "-Dprofiler.collector.ip=pinpoint-collector"
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: APPLICATION_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['app.kubernetes.io/name']
+        volumeMounts:
+          - name: plugin-volume
+            mountPath: /workspace/plugins
+      volumes:
+        - name: plugin-volume
+          emptyDir: {}
+
   # 自动横向拓展
   autoscaling:
     # 是否启用自动横向拓展。如果不启用，则默认启动 minReplicas 个副本
