@@ -51,10 +51,10 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: data-volume
-              mountPath: /nexus-data
+              mountPath: /workspace/data
               subPath: nexus-data
             - name: data-volume
-              mountPath: /opt/sonatype/nexus/deploy
+              mountPath: /workspace/nexus/deploy
               subPath: deploy
       {{- with .Values.nodeSelector }}
       nodeSelector:

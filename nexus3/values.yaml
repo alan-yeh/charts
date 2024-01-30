@@ -5,7 +5,7 @@ maintenance: false
 # 镜像
 image:
   registry: docker.io
-  repository: sonatype/nexus3
+  repository: centralx/nexus3
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
