@@ -2,7 +2,15 @@
 ## 概述
 &emsp;&emsp;本 Helm Chart 主要用于在集群里部署 MySql 数据库。同时，为了方便运维，本 Chart 还包含了网页版 CloudBeaver，可以直接在浏览器上运维 MySql 数据库。
 
-&emsp;&emsp;本部署包不支持 MySql 集群、高可用。同时需要注意，将 MySql 部署在 Kubernetes 集群中作为生产用途时，需要注意存储是否支持高性能 IO，否则数据库极容易变成应用的性能瓶颈。
+&emsp;&emsp;本部署包支持在同一命名空间里部署多个 MySql 实例。本部署包不支持 MySql 集群、高可用。同时需要注意，将 MySql 部署在 Kubernetes 集群中作为生产用途时，需要注意存储是否支持高性能 IO，否则数据库极容易变成应用的性能瓶颈。
+
+## 容器部署规范
+&emsp;&emsp;本部署包遵循以下部署规范：
+
+- 分散部署：当应用支持 `HPA` 时，多个实例会尽量分散部署到不同的节点上，以保证应用的可用性。
+- 隔离部署：应用只调度与对应命名空间的节点（`node.kubernetes.io/namespace=<namespace>`）上，保证各环境（生产环境、预发布环境等）节点隔离。
+- 支持探针：支持启动探针（`startupProbe`）与存活探针（`livenessProbe`），保证应用一直处于可用状态。
+- 支持维护状态：当维护状态（`maintenance`）属性值为 true 时，即进入维护状态。当进入维护状态时，`HPA` 将会失效，所有的 `Deployment` 和 `StatefulSet` 的 `replicas` 将被设置 0。
 
 ## 组件依赖
 &emsp;&emsp;本系统不依赖外部组件。
@@ -12,6 +20,31 @@
 &emsp;&emsp;创建配置文件 `mysql.yaml`，将 `values.yaml` 中的内容复制到该文件中。删除其余无用的配置，保留需要修改的内容，如下：
 
 ```yaml
+####################################################################
+# 全局配置
+####################################################################
+# 维护状态
+# 当进入维护状态时，hpa 将会失效，所有的 Deployment 和 StatefulSet 的 replicas 将被设置 0
+maintenance: false
+
+# 存储配置
+pvc:
+  storageClassName: permanent
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+####################################################################
+# MySql 配置
+####################################################################
+mysql:
+  # 应用资源限制
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
 # MySql 配置
 config:
   # root 用户的密码
@@ -23,12 +56,12 @@ config:
 
 ```bash
 # 使用 mysql.yaml 指定的参数部署
-$ helm install <release-name> . -f mysql.yaml
+$ helm install <release-name> oci://registry-1.docker.io/centralx/helm-mysql -f mysql.yaml
 ```
 
 ## 使用
 ### 访问数据库
-&emsp;&emsp;部署完毕后，内部的业务系统就可以通过 `<release-name>:3306` 连接到 MySql 实例了。
+&emsp;&emsp;部署完毕后，内部的业务系统就可以通过 `<release-name>:3306` 连接到 MySql 实例，如以下 Spring 的配置：
 
 ```yaml
 spring:

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: helm-xunlei
-description: A Helm chart for Xunlei
+description: Helm chart for Xunlei
 type: application
 version: 3.7.1
 appVersion: "3.7.1"

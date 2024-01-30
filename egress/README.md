@@ -10,6 +10,17 @@
 
 &emsp;&emsp;基于以上理论，为了方便将外部业务系统快速封装成内部服务（Service），因此封装了 Egress。Egress 可以根据用户配置的路由信息，自动生成对应代理信息和 Kubernetes Service，后续集群内部的服务就可以通过 `http://<service-name>` 的方式访问外部网络。
 
+## 容器部署规范
+&emsp;&emsp;本部署包遵循以下部署规范：
+
+- 分散部署：当应用支持 `HPA` 时，多个实例会尽量分散部署到不同的节点上，以保证应用的可用性。
+- 隔离部署：应用只调度与对应命名空间的节点（`node.kubernetes.io/namespace=<namespace>`）上，保证各环境（生产环境、预发布环境等）节点隔离。
+- 支持探针：支持启动探针（`startupProbe`）与存活探针（`livenessProbe`），保证应用一直处于可用状态。
+- 支持维护状态：当维护状态（`maintenance`）属性值为 true 时，即进入维护状态。当进入维护状态时，`HPA` 将会失效，所有的 `Deployment` 和 `StatefulSet` 的 `replicas` 将被设置 0。
+
+## 组件依赖
+&emsp;&emsp;本系统不依赖外部组件。
+
 ## 部署
 ### 修改集群节点信息
 &emsp;&emsp;由于只有指定点节才可以与外部业务系统通信，因此需要为这个节点添加标签，然后 Egress 通过节点选择器固定到这个节点上。推荐为这个节点添加 `cluster.k8s/egress: enabled` 标签：
@@ -21,9 +32,30 @@ node/node5.cluster.k8s labed
 ```
 
 ### 创建配置文件
-&emsp;&emsp;创建配置文件 `egress.yaml`，将 `values.yaml` 中的内容复制到该文件中。删除其余无用的配置，保留需要修改的内容，如添加代理配置：
+&emsp;&emsp;创建配置文件 `egress.yaml`，将 `values.yaml` 中的内容复制到该文件中。删除其余无用的配置，保留需要修改的内容，如下：
 
 ```yaml
+# 维护状态
+# 当进入维护状态时，hpa 将会失效，所有的 Deployment 和 StatefulSet 的 replicas 将被设置 0
+maintenance: false
+
+# 资源限制
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+
+# 自动横向拓展
+autoscaling:
+  # 是否启用横向拓展。如果不启用，则默认启动 minReplicas 个副本
+  enabled: true
+  # 最小副本数量
+  minReplicas: 2
+  # 最大副本数量
+  maxReplicas: 5
+  # CPU 超过 resource.limits.cpu 里面限制的 60% 就触发横向拓展
+  targetCPUPercentage: 60
+
 # 代理路由
 routers:
   - name: dashboard               # 服务名（必填）
@@ -49,7 +81,7 @@ routers:
 
 ```bash
 # 使用 egress.yaml 指定的参数部署
-$ helm install <release-name> . -f egress.yaml
+$ helm install <release-name> oci://registry-1.docker.io/centralx/helm-egress -f egress.yaml
 ```
 
 ## 使用

@@ -4,6 +4,15 @@
 
 &emsp;&emsp;一般情况下，一个命名空间一般只需要一个下载工具，因此在制作本 Chart 包时，不支持在同一个命名空间里部署多个迅雷下载实例。
 
+## 容器部署规范
+&emsp;&emsp;本部署包遵循以下部署规范：
+
+- 分散部署：当应用支持 `HPA` 时，多个实例会尽量分散部署到不同的节点上，以保证应用的可用性。
+- 隔离部署：应用只调度与对应命名空间的节点（`node.kubernetes.io/namespace=<namespace>`）上，保证各环境（生产环境、预发布环境等）节点隔离。
+- 支持探针：支持启动探针（`startupProbe`）与存活探针（`livenessProbe`），保证应用一直处于可用状态。
+- 支持维护状态：当维护状态（`maintenance`）属性值为 true 时，即进入维护状态。当进入维护状态时，`HPA` 将会失效，所有的 `Deployment` 和 `StatefulSet` 的 `replicas` 将被设置 0。
+
+
 ## 组件依赖
 &emsp;&emsp;本系统不依赖外部组件。
 
@@ -15,7 +24,7 @@
 &emsp;&emsp;使用 helm 执行以下命令，完成部署：
 
 ```bash
-$ helm install <release-name> .
+$ helm install <release-name> oci://registry-1.docker.io/centralx/helm-xunlei
 ```
 
 ## 使用

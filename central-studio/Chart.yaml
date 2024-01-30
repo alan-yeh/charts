@@ -1,6 +1,6 @@
 apiVersion: v2
 name: central-studio
-description: A Helm chart for Central Studio
+description: Helm chart for Central Studio
 type: application
 version: 0.0.1
 appVersion: "1.0.x-SNAPSHOT"

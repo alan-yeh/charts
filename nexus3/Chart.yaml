@@ -1,6 +1,6 @@
 apiVersion: v2
 name: helm-nexus3
-description: A Helm chart for Nexus3
+description: Helm chart for Nexus3
 type: application
 version: 3.54.1
 appVersion: "3.54.1"

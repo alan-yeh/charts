@@ -1,6 +1,6 @@
 apiVersion: v2
 name: helm-speedtest
-description: Helm chart for speed test
+description: Helm chart for speedtest
 type: application
 version: 1.0.0
 appVersion: "1.0.0"
